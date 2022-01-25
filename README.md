@@ -69,5 +69,4 @@ Use the following arguments with the script `./pi-app-updater --repo-name <repo-
 
 ## TODO
 - uninstall
-- refactor
 - package functions need improvement

@@ -87,3 +87,27 @@ func (s SystemdTool) StopSystemdUnit() error {
 	}
 	return nil
 }
+
+func (s SystemdTool) Uninstall() error {
+	if err := s.StopSystemdUnit(); err != nil {
+		return err
+	}
+
+	if _, err := exec.Command("systemctl", "stop", "pi-app-updater").Output(); err != nil {
+		return fmt.Errorf("stopping pi-app-updater systemd unit: %s", err)
+	}
+
+	if _, err := exec.Command("systemctl", "daemon-reload").Output(); err != nil {
+		return fmt.Errorf("running daemon-reload: %s", err)
+	}
+
+	if err := os.Remove(s.UnitPath); err != nil {
+		return err
+	}
+
+	if err := os.Remove(s.UpdaterPath); err != nil {
+		return err
+	}
+
+	return nil
+}

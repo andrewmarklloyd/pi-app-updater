@@ -57,3 +57,10 @@ func (v VersionTool) WriteCurrentVersion(version string) error {
 	}
 	return nil
 }
+
+func (v VersionTool) Uninstall() error {
+	if err := os.Remove(v.VersionFile); err != nil {
+		return err
+	}
+	return nil
+}

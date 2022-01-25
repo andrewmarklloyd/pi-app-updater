@@ -30,6 +30,7 @@ func main() {
 	packageName := flag.String("package-name", "", "Package name to install")
 	pollPeriodMin := flag.Int64("poll-period-min", defaultPollPeriodMin, "Number of minutes between polling for new version")
 	install := flag.Bool("install", false, "First time install of the application. Will not trigger checking for updates")
+	unInstall := flag.Bool("uninstall", false, "Uninstall the application")
 	flag.Parse()
 
 	testMode = os.Getenv("TEST_MODE") == "true"
@@ -74,6 +75,7 @@ func main() {
 			os.Exit(1)
 		}
 
+		fmt.Println("Installing latest release", latest.Version)
 		err = installRelease(cfg, latest.AssetDownloadURL, sdTool)
 		if err != nil {
 			log.Println(fmt.Errorf("error installing app: %s", err))
@@ -86,6 +88,27 @@ func main() {
 		}
 		log.Println("Successfully installed app")
 
+	} else if *unInstall {
+		fmt.Println("Un-installing", cfg.PackageName)
+		if err := sdTool.Uninstall(); err != nil {
+			log.Println(fmt.Errorf("uninstalling systemd units: %s", err))
+			os.Exit(1)
+		}
+
+		if err := vTool.Uninstall(); err != nil {
+			log.Println(fmt.Errorf("uninstalling version file: %s", err))
+			os.Exit(1)
+		}
+
+		if err := file.RemoveFile(fmt.Sprintf("%s/%s", piUserHomeDir, cfg.PackageName)); err != nil {
+			log.Println(fmt.Errorf("removing file: %s", err))
+			os.Exit(1)
+		}
+
+		if err := file.RemoveFile(fmt.Sprintf("%s/run-%s.sh", piUserHomeDir, cfg.PackageName)); err != nil {
+			log.Println(fmt.Errorf("removing file: %s", err))
+			os.Exit(1)
+		}
 	} else {
 		var cronSpec string
 		if testMode {
