@@ -29,7 +29,7 @@ WantedBy=multi-user.target
 [Service]
 EnvironmentFile=/home/pi/.sample-app.env
 ExecStart=/home/pi/run-sample-app.sh
-WorkingDirectory=/home/pi/
+WorkingDirectory=/home/pi
 StandardOutput=inherit
 StandardError=inherit
 TimeoutStartSec=7
@@ -61,7 +61,7 @@ WantedBy=multi-user.target
 [Service]
 EnvironmentFile=/home/pi/.pi-app-deployer-agent.env
 ExecStart=/home/pi/pi-app-deployer-agent --repo-name andrewmarklloyd/pi-test --manifest-name pi-test
-WorkingDirectory=/home/pi/
+WorkingDirectory=/home/pi
 StandardOutput=inherit
 StandardError=inherit
 Restart=always

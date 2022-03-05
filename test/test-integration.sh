@@ -46,17 +46,8 @@ for key in ${reqVars}; do
 done
 
 
-mv ${workDir}/pi-app-deployer-agent /home/runner
-/home/runner/pi-app-deployer-agent --repo-name ${repo} --manifest-name ${manifestName} --install
-pwd
-echo "current dir:"
-ls -al
-echo
-echo "/home/runner dir:"
-ls -al ${homeDir}
-echo
-echo "systemd dir:"
-ls -al /etc/systemd/system/
+mv ${workDir}/pi-app-deployer-agent ${homeDir}
+${homeDir}/pi-app-deployer-agent --repo-name ${repo} --manifest-name ${manifestName} --install
 sleep 10
 journalctl -u pi-app-deployer-agent.service
 
