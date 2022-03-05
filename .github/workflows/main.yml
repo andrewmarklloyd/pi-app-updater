@@ -31,5 +31,5 @@ jobs:
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       run: |
-        systemctl status
+        systemctl status network.target
         make test-integration
