@@ -51,6 +51,7 @@ ${homeDir}/pi-app-deployer-agent --repo-name ${repo} --manifest-name ${manifestN
 echo "homeDir: ${homeDir}"
 ls -al ${homeDir}
 sleep 10
+cat /etc/systemd/system/pi-test.service
 journalctl -u pi-app-deployer-agent.service
 journalctl -u pi-test.service
 
