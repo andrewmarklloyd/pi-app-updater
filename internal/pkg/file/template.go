@@ -31,6 +31,7 @@ type ServiceTemplateData struct {
 	Restart         string
 	RestartSec      int
 	EnvironmentFile string
+	HomeDir         string
 }
 
 type DeployerTemplateData struct {
@@ -57,6 +58,7 @@ func EvalServiceTemplate(m manifest.Manifest, homeDir string) (string, error) {
 		Restart:         m.Systemd.Service.Restart,
 		RestartSec:      m.Systemd.Service.RestartSec,
 		EnvironmentFile: getServiceEnvFileName(m, homeDir),
+		HomeDir:         homeDir,
 	}
 
 	for _, a := range m.Systemd.Unit.After {
