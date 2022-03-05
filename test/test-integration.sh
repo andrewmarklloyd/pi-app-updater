@@ -44,5 +44,7 @@ for key in ${reqVars}; do
   echo "${key}=${val}" >> ${envFile}
 done
 
+systemctl status
 ./pi-app-deployer-agent --repo-name ${repo} --manifest-name ${manifestName} --install
-
+systemctl status pi-app-deployer-agent.service
+journalctl -xe
