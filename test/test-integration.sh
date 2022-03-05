@@ -44,7 +44,7 @@ for key in ${reqVars}; do
   echo "${key}=${val}" >> ${envFile}
 done
 
-mv /home/runner/work/pi-app-deployer-agent/pi-app-deployer /home/runner
+mv /home/runner/work/pi-app-deployer/pi-app-deployer-agent /home/runner
 /home/runner/pi-app-deployer-agent --repo-name ${repo} --manifest-name ${manifestName} --install
 pwd
 ls -al ${homeDir}
