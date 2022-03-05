@@ -31,4 +31,7 @@ jobs:
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       run: |
+        loginctl enable-linger runner
+        sleep 2
+        ls /run/user/$UID
         make test-integration
