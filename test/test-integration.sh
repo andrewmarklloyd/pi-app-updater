@@ -48,7 +48,7 @@ done
 pwd
 ls -al ${homeDir}
 ls -al /etc/systemd/system/
-cat /etc/systemd/system/pi-app-deployer-agent
-journalctl -u pi-app-deployer-agent.service
-
+cat /etc/systemd/system/pi-app-deployer-agent.service
+journalctl -u pi-app-deployer-agent.service -f &
+sleep 10
 #           XDG_RUNTIME_DIR=/run/user/$UID systemctl --user enable --now webserver.service
