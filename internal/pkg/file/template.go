@@ -32,6 +32,7 @@ type ServiceTemplateData struct {
 	RestartSec      int
 	EnvironmentFile string
 	HomeDir         string
+	AppUser         string
 }
 
 type DeployerTemplateData struct {
@@ -50,7 +51,7 @@ type RunScriptTemplateData struct {
 	NewLine       string
 }
 
-func EvalServiceTemplate(m manifest.Manifest, homeDir string) (string, error) {
+func EvalServiceTemplate(m manifest.Manifest, homeDir, user string) (string, error) {
 	d := ServiceTemplateData{
 		Description:     m.Systemd.Unit.Description,
 		ExecStart:       getExecStartName(m, homeDir),
@@ -59,6 +60,7 @@ func EvalServiceTemplate(m manifest.Manifest, homeDir string) (string, error) {
 		RestartSec:      m.Systemd.Service.RestartSec,
 		EnvironmentFile: getServiceEnvFileName(m, homeDir),
 		HomeDir:         homeDir,
+		AppUser:         user,
 	}
 
 	for _, a := range m.Systemd.Unit.After {

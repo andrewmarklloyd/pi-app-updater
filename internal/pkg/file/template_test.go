@@ -13,7 +13,7 @@ func Test_ServiceTemplate(t *testing.T) {
 	m, err := manifest.GetManifest("../../../test/templates/fully-defined-manifest.yaml")
 	assert.NoError(t, err)
 
-	serviceFile, err := EvalServiceTemplate(m, "/home/pi")
+	serviceFile, err := EvalServiceTemplate(m, "/home/pi", "pi")
 	assert.NoError(t, err)
 
 	expectedServiceFile := `[Unit]
@@ -45,6 +45,7 @@ func Test_EvalDeployerTemplate(t *testing.T) {
 		RepoName:     "andrewmarklloyd/pi-test",
 		ManifestName: "pi-test",
 		HomeDir:      "/home/pi",
+		AppUser:      "pi",
 	}
 	serviceFile, err := EvalDeployerTemplate(c)
 	assert.NoError(t, err)
