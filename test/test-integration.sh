@@ -3,6 +3,7 @@
 # set -euo pipefail
 
 os="Ubuntu"
+workDir="/home/runner/work/pi-app-deployer/pi-app-deployer"
 homeDir="/home/runner"
 envFile="${homeDir}/.pi-app-deployer-agent.env"
 
@@ -44,7 +45,8 @@ for key in ${reqVars}; do
   echo "${key}=${val}" >> ${envFile}
 done
 
-mv /home/runner/work/pi-app-deployer/pi-app-deployer-agent /home/runner
+
+mv ${workDir}/pi-app-deployer-agent /home/runner
 /home/runner/pi-app-deployer-agent --repo-name ${repo} --manifest-name ${manifestName} --install
 pwd
 echo "current dir:"

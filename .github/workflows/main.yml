@@ -33,5 +33,4 @@ jobs:
       run: |
         loginctl enable-linger runner
         sleep 2
-        ls /run/user/$UID
         make test-integration
