@@ -2,6 +2,8 @@
 
 # set -euo pipefail
 
+# TODO: move this to install script?
+
 os="Ubuntu"
 workDir="/home/runner/work/pi-app-deployer/pi-app-deployer"
 homeDir="/home/runner"
@@ -45,13 +47,9 @@ for key in ${reqVars}; do
   echo "${key}=${val}" >> ${envFile}
 done
 
-
 mv ${workDir}/pi-app-deployer-agent ${homeDir}
 ${homeDir}/pi-app-deployer-agent --app-user runneradmin --repo-name ${repo} --manifest-name ${manifestName} --install
-echo "homeDir: ${homeDir}"
-ls -al ${homeDir}
 sleep 10
-cat /etc/systemd/system/pi-test.service
 journalctl -u pi-app-deployer-agent.service
 journalctl -u pi-test.service
 
