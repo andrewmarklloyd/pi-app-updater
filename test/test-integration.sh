@@ -48,8 +48,8 @@ done
 
 mv ${workDir}/pi-app-deployer-agent ${homeDir}
 ${homeDir}/pi-app-deployer-agent --repo-name ${repo} --manifest-name ${manifestName} --install
-echo ${UID}
-echo ${GID}
+id -u runneradmin
+id -g runneradmin
 echo "homeDir: ${homeDir}"
 ls -al ${homeDir}
 sleep 10
