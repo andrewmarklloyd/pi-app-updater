@@ -33,6 +33,13 @@ type ServiceTemplateData struct {
 	EnvironmentFile string
 }
 
+type DeployerTemplateData struct {
+	HomeDir         string
+	EnvironmentFile string
+	RepoName        string
+	ManifestName    string
+}
+
 type RunScriptTemplateData struct {
 	EnvVarKeys    []string
 	AppVersion    string
@@ -86,11 +93,18 @@ func EvalDeployerTemplate(cfg config.Config) (string, error) {
 		result = multierror.Append(result, fmt.Errorf("config manifest name is required"))
 	}
 
+	d := DeployerTemplateData{
+		EnvironmentFile: getDeployerEnvFileName(cfg.HomeDir),
+		RepoName:        cfg.RepoName,
+		ManifestName:    cfg.ManifestName,
+		HomeDir:         cfg.HomeDir,
+	}
+
 	if result != nil {
 		return "", result
 	}
 
-	return evalTemplate(deployerTemplate, cfg)
+	return evalTemplate(deployerTemplate, d)
 }
 
 func evalTemplate(templateFile string, d interface{}) (string, error) {
@@ -128,6 +142,10 @@ func getBinaryPath(m manifest.Manifest, homeDir string) string {
 
 func getServiceEnvFileName(m manifest.Manifest, homeDir string) string {
 	return fmt.Sprintf("%s/.%s.env", homeDir, m.Name)
+}
+
+func getDeployerEnvFileName(homeDir string) string {
+	return fmt.Sprintf("%s/.pi-app-deployer-agent.env", homeDir)
 }
 
 func FromJSONCompliant(fileWithNewlines string) string {

@@ -47,3 +47,5 @@ done
 ./pi-app-deployer-agent --repo-name ${repo} --manifest-name ${manifestName} --install
 systemctl status pi-app-deployer-agent.service
 journalctl -u pi-app-deployer-agent.service
+
+#           XDG_RUNTIME_DIR=/run/user/$UID systemctl --user enable --now webserver.service

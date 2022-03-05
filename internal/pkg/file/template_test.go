@@ -44,6 +44,7 @@ func Test_EvalDeployerTemplate(t *testing.T) {
 	c := config.Config{
 		RepoName:     "andrewmarklloyd/pi-test",
 		ManifestName: "pi-test",
+		HomeDir:      "/home/pi",
 	}
 	serviceFile, err := EvalDeployerTemplate(c)
 	assert.NoError(t, err)
