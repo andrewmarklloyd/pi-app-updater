@@ -52,5 +52,6 @@ echo "homeDir: ${homeDir}"
 ls -al ${homeDir}
 sleep 10
 journalctl -u pi-app-deployer-agent.service
+journalctl -u pi-test.service
 
 #           XDG_RUNTIME_DIR=/run/user/$UID systemctl --user enable --now webserver.service
