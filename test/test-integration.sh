@@ -47,9 +47,15 @@ done
 mv /home/runner/work/pi-app-deployer/pi-app-deployer-agent /home/runner
 /home/runner/pi-app-deployer-agent --repo-name ${repo} --manifest-name ${manifestName} --install
 pwd
+echo "current dir:"
+ls -al
+echo
+echo "/home/runner dir:"
 ls -al ${homeDir}
+echo
+echo "systemd dir:"
 ls -al /etc/systemd/system/
-cat /etc/systemd/system/pi-app-deployer-agent.service
-journalctl -u pi-app-deployer-agent.service -f &
 sleep 10
+journalctl -u pi-app-deployer-agent.service
+
 #           XDG_RUNTIME_DIR=/run/user/$UID systemctl --user enable --now webserver.service
