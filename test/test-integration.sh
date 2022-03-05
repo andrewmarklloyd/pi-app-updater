@@ -3,7 +3,7 @@
 # set -euo pipefail
 
 os="Ubuntu"
-homeDir="/root"
+homeDir="/home/runner"
 envFile="${homeDir}/.pi-app-deployer-agent.env"
 
 if [[ $(whoami) != "root" ]]; then
@@ -46,6 +46,7 @@ done
 
 ./pi-app-deployer-agent --repo-name ${repo} --manifest-name ${manifestName} --install
 ls -al ${HOME}
+ls -al
 journalctl -u pi-app-deployer-agent.service
 
 #           XDG_RUNTIME_DIR=/run/user/$UID systemctl --user enable --now webserver.service
