@@ -52,9 +52,4 @@ ${homeDir}/pi-app-deployer-agent --app-user runneradmin --repo-name ${repo} --ma
 
 sleep 10
 systemctl is-active --quiet pi-app-deployer-agent.service
-systemctl status pi-app-deployer-agent.service
-journalctl -u pi-app-deployer-agent.service
-
 systemctl is-active --quiet pi-test.service
-systemctl status pi-test.service
-journalctl -u pi-test.service
