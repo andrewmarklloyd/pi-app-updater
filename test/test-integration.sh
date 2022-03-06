@@ -57,4 +57,4 @@ journalctl -u pi-app-deployer-agent.service
 
 systemctl is-active --quiet pi-test.service
 systemctl status pi-test.service
-journalctl -u pi-test.service
+journalctl -u pi-test-bad.service
