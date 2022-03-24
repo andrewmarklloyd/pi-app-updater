@@ -94,6 +94,7 @@ func main() {
 	agent := newAgent(cfg, client, ghApiToken, herokuAPIKey, serverApiKey)
 
 	if *install {
+		// check for existing .pi-app-deployer-agent.config. if already exists append config passed in from install. If not exists create it
 		enabled, err := file.SystemdUnitEnabled(cfg.ManifestName)
 		if err != nil {
 			logger.Fatalln("error checking if app is installed already: ", err)
