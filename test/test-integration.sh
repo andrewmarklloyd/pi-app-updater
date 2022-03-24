@@ -35,6 +35,8 @@ echo "HEROKU_API_KEY=${HEROKU_API_KEY}" > ${envFile}
 mv ${workDir}/pi-app-deployer-agent ${homeDir}
 ${homeDir}/pi-app-deployer-agent --app-user runneradmin --repo-name ${repo} --manifest-name ${manifestName} --home-dir ${homeDir} --install
 
+cat /etc/systemd/system/pi-test-amd64.service
+
 sleep 10
 journalctl -u pi-app-deployer-agent.service
 journalctl -u pi-test-amd64.service
