@@ -21,7 +21,7 @@ func main() {
 	if u != "root" {
 		logger.Fatalln("agent must be run as root, user found was", u)
 	}
-	// todo: support multiple repos and packages
+	// TODO: need to write a config file which supports multiple repo/manifests
 	repoName := flag.String("repo-name", "", "Name of the Github repo including the owner")
 	manifestName := flag.String("manifest-name", "", "Name of the pi-app-deployer manifest")
 	appUser := flag.String("app-user", "pi", "Name of user that will run the app service")
