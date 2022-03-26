@@ -14,6 +14,9 @@ func GetAppConfigs(path string) (AppConfigs, error) {
 	var emptyAppConfigs AppConfigs
 	yamlFile, err := ioutil.ReadFile(path)
 	if err != nil {
+		if err.Error() == fmt.Sprintf("open %s: no such file or directory", path) {
+			return emptyAppConfigs, nil
+		}
 		return emptyAppConfigs, fmt.Errorf("reading app configs yaml file: %s", err)
 	}
 
