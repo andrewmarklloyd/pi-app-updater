@@ -38,24 +38,3 @@ func WriteAppConfigs(path string, appConfigs AppConfigs) error {
 	}
 	return nil
 }
-
-/*appConfigs := []Config{}
-
-out, err := yaml.Marshal(appConfigs)
-if err != nil {
-	return emptyAppConfigs, err
-}
-fmt.Println(string(out))
-
-// json, err := json.Marshal(l)
-// if err != nil {
-// 	logger.Println(fmt.Sprintf("marshalling log forwarder message: %s", err))
-// 	return
-// }
-
-// err = os.WriteFile(path, []byte(""), 0644)
-// if err != nil {
-// 	return emptyAppConfigs, fmt.Errorf("writing service file: %s", err)
-// }
-
-fmt.Println(string(yamlFile))*/
