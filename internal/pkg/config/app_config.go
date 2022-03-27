@@ -10,7 +10,7 @@ import (
 )
 
 type AppConfigs struct {
-	Map map[string]Config `json:"map"`
+	Map map[string]Config `yaml:"map"`
 }
 
 func GetAppConfigs(path string) (AppConfigs, error) {
@@ -44,6 +44,10 @@ func (a *AppConfigs) WriteAppConfigs(path string) error {
 		return fmt.Errorf("writing app configs: %s", err)
 	}
 	return nil
+}
+
+func (a *AppConfigs) SetConfig(c Config) {
+	a.Map[configToKey(c)] = c
 }
 
 func (a *AppConfigs) ConfigExists(c Config) bool {

@@ -103,8 +103,9 @@ func main() {
 	}
 
 	if *install {
+		// TODO: support updating a config?
 		if appConfigs.ConfigExists(cfg) {
-			logger.Println("App already exists in app configs file", appsConfigPath)
+			logger.Fatalln("App already exists in app configs file", appsConfigPath)
 		}
 
 		enabled, err := file.SystemdUnitEnabled(cfg.ManifestName)
@@ -125,6 +126,9 @@ func main() {
 		if err != nil {
 			logger.Fatalln(fmt.Errorf("failed installation: %s", err))
 		}
+
+		appConfigs.SetConfig(cfg)
+		appConfigs.WriteAppConfigs(appsConfigPath)
 		logger.Println("Successfully installed app")
 		os.Exit(0)
 	}
