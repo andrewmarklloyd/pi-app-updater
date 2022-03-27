@@ -15,24 +15,20 @@ func Test_NoConfig(t *testing.T) {
 	appConfigs, err := GetAppConfigs(testConfigPath)
 	assert.NoError(t, err)
 	assert.NotNil(t, appConfigs)
-	assert.NotNil(t, appConfigs.Configs)
-	assert.Equal(t, []Config{}, appConfigs.Configs)
+	assert.NotNil(t, appConfigs.Map)
+	assert.Equal(t, map[string]Config{}, appConfigs.Map)
 }
 
 func Test_CreateConfig(t *testing.T) {
-	e := make(map[string]string)
-	e["MY_CONFIG"] = "foobar"
-	e["HELLO_CONFIG"] = "testing"
-	a := AppConfigs{[]Config{
-		{
-			RepoName:      "andrewmarklloyd/pi-test",
-			ManifestName:  "pi-test-arm",
-			HomeDir:       "/home/pi",
-			AppUser:       "pi",
-			LogForwarding: false,
-			EnvVars:       e,
-		},
-	}}
+	c := Config{
+		RepoName:      "andrewmarklloyd/pi-test",
+		ManifestName:  "pi-test-arm",
+		HomeDir:       "/home/pi",
+		AppUser:       "pi",
+		LogForwarding: false,
+		EnvVars:       map[string]string{"MY_CONFIG": "foobar", "HELLO_CONFIG": "testing"},
+	}
+	a := AppConfigs{Map: map[string]Config{"andrewmarklloyd_pi-test_pi-test-arm": c}}
 
 	u, _ := uuid.NewUUID()
 	testConfigPath := fmt.Sprintf("/tmp/.pi-app-deployer.app.config.%s", u.String())
@@ -42,109 +38,114 @@ func Test_CreateConfig(t *testing.T) {
 
 	content, err := os.ReadFile(testConfigPath)
 	assert.NoError(t, err)
-	expectedContent := `configs:
-- repoName: andrewmarklloyd/pi-test
-  manifestName: pi-test-arm
-  homeDir: /home/pi
-  appUser: pi
-  logForwarding: false
-  envVars:
-    HELLO_CONFIG: testing
-    MY_CONFIG: foobar
+	expectedContent := `map:
+  andrewmarklloyd_pi-test_pi-test-arm:
+    repoName: andrewmarklloyd/pi-test
+    manifestName: pi-test-arm
+    homeDir: /home/pi
+    appUser: pi
+    logForwarding: false
+    envVars:
+      HELLO_CONFIG: testing
+      MY_CONFIG: foobar
 `
 	assert.Equal(t, expectedContent, string(content))
 
 	aConf, err := GetAppConfigs(testConfigPath)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "pi", aConf.Configs[0].AppUser)
-	assert.Equal(t, "andrewmarklloyd/pi-test", aConf.Configs[0].RepoName)
-	assert.Equal(t, "pi-test-arm", aConf.Configs[0].ManifestName)
-	assert.Equal(t, "/home/pi", aConf.Configs[0].HomeDir)
-	assert.False(t, aConf.Configs[0].LogForwarding)
+	actual := aConf.Map["andrewmarklloyd_pi-test_pi-test-arm"]
+
+	assert.Equal(t, "pi", actual.AppUser)
+	assert.Equal(t, "andrewmarklloyd/pi-test", actual.RepoName)
+	assert.Equal(t, "pi-test-arm", actual.ManifestName)
+	assert.Equal(t, "/home/pi", actual.HomeDir)
+	assert.False(t, actual.LogForwarding)
 	expectedMap := make(map[string]string)
 	expectedMap["MY_CONFIG"] = "foobar"
 	expectedMap["HELLO_CONFIG"] = "testing"
-	assert.Equal(t, expectedMap, aConf.Configs[0].EnvVars)
-	fmt.Println()
+	assert.Equal(t, expectedMap, actual.EnvVars)
 }
 
 func Test_CreateMultipleConfigs(t *testing.T) {
-	config1Env := make(map[string]string)
-	config1Env["MY_CONFIG"] = "foobar"
-	config1Env["HELLO_CONFIG"] = "testing"
+	c1 := Config{
+		RepoName:      "andrewmarklloyd/pi-test",
+		ManifestName:  "pi-test-arm",
+		HomeDir:       "/home/pi",
+		AppUser:       "pi",
+		LogForwarding: false,
+		EnvVars:       map[string]string{"MY_CONFIG": "foobar", "HELLO_CONFIG": "testing"},
+	}
 
-	config2Env := make(map[string]string)
-	config2Env["HELLO_WORLD"] = "hello-world"
-	config2Env["CONFIG"] = "config-test"
-	a := AppConfigs{[]Config{
-		{
-			RepoName:      "andrewmarklloyd/pi-test",
-			ManifestName:  "pi-test-arm",
-			HomeDir:       "/home/pi",
-			AppUser:       "pi",
-			LogForwarding: false,
-			EnvVars:       config1Env,
+	c2 := Config{
+		RepoName:      "andrewmarklloyd/pi-test-2",
+		ManifestName:  "pi-test-amd64",
+		HomeDir:       "/home/app-runner",
+		AppUser:       "app-runner",
+		LogForwarding: true,
+		EnvVars:       map[string]string{"HELLO_WORLD": "hello-world", "CONFIG": "config-test"},
+	}
+
+	appConfigs := AppConfigs{
+		map[string]Config{
+			configToKey(c1): c1,
+			configToKey(c2): c2,
 		},
-		{
-			RepoName:      "andrewmarklloyd/pi-test-2",
-			ManifestName:  "pi-test-amd64",
-			HomeDir:       "/home/app-runner",
-			AppUser:       "app-runner",
-			LogForwarding: true,
-			EnvVars:       config2Env,
-		},
-	}}
+	}
 
 	u, _ := uuid.NewUUID()
 	testConfigPath := fmt.Sprintf("/tmp/.pi-app-deployer.app.config.%s", u.String())
-	err := a.WriteAppConfigs(testConfigPath)
+	err := appConfigs.WriteAppConfigs(testConfigPath)
 	assert.NoError(t, err)
 
 	content, err := os.ReadFile(testConfigPath)
 	assert.NoError(t, err)
-	expectedContent := `configs:
-- repoName: andrewmarklloyd/pi-test
-  manifestName: pi-test-arm
-  homeDir: /home/pi
-  appUser: pi
-  logForwarding: false
-  envVars:
-    HELLO_CONFIG: testing
-    MY_CONFIG: foobar
-- repoName: andrewmarklloyd/pi-test-2
-  manifestName: pi-test-amd64
-  homeDir: /home/app-runner
-  appUser: app-runner
-  logForwarding: true
-  envVars:
-    CONFIG: config-test
-    HELLO_WORLD: hello-world
+	expectedContent := `map:
+  andrewmarklloyd_pi-test-2_pi-test-amd64:
+    repoName: andrewmarklloyd/pi-test-2
+    manifestName: pi-test-amd64
+    homeDir: /home/app-runner
+    appUser: app-runner
+    logForwarding: true
+    envVars:
+      CONFIG: config-test
+      HELLO_WORLD: hello-world
+  andrewmarklloyd_pi-test_pi-test-arm:
+    repoName: andrewmarklloyd/pi-test
+    manifestName: pi-test-arm
+    homeDir: /home/pi
+    appUser: pi
+    logForwarding: false
+    envVars:
+      HELLO_CONFIG: testing
+      MY_CONFIG: foobar
 `
 	assert.Equal(t, expectedContent, string(content))
 
-	a, err = GetAppConfigs(testConfigPath)
+	appConfigs, err = GetAppConfigs(testConfigPath)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "pi", a.Configs[0].AppUser)
-	assert.Equal(t, "andrewmarklloyd/pi-test", a.Configs[0].RepoName)
-	assert.Equal(t, "pi-test-arm", a.Configs[0].ManifestName)
-	assert.Equal(t, "/home/pi", a.Configs[0].HomeDir)
-	assert.False(t, a.Configs[0].LogForwarding)
+	c1Actual := appConfigs.Map["andrewmarklloyd_pi-test_pi-test-arm"]
+	assert.Equal(t, "pi", c1Actual.AppUser)
+	assert.Equal(t, "andrewmarklloyd/pi-test", c1Actual.RepoName)
+	assert.Equal(t, "pi-test-arm", c1Actual.ManifestName)
+	assert.Equal(t, "/home/pi", c1Actual.HomeDir)
+	assert.False(t, c1Actual.LogForwarding)
 	expectedMap := make(map[string]string)
 	expectedMap["MY_CONFIG"] = "foobar"
 	expectedMap["HELLO_CONFIG"] = "testing"
-	assert.Equal(t, expectedMap, a.Configs[0].EnvVars)
+	assert.Equal(t, expectedMap, c1Actual.EnvVars)
 
-	assert.Equal(t, "app-runner", a.Configs[1].AppUser)
-	assert.Equal(t, "andrewmarklloyd/pi-test-2", a.Configs[1].RepoName)
-	assert.Equal(t, "pi-test-amd64", a.Configs[1].ManifestName)
-	assert.Equal(t, "/home/app-runner", a.Configs[1].HomeDir)
-	assert.True(t, a.Configs[1].LogForwarding)
+	c2Actual := appConfigs.Map["andrewmarklloyd_pi-test-2_pi-test-amd64"]
+	assert.Equal(t, "app-runner", c2Actual.AppUser)
+	assert.Equal(t, "andrewmarklloyd/pi-test-2", c2Actual.RepoName)
+	assert.Equal(t, "pi-test-amd64", c2Actual.ManifestName)
+	assert.Equal(t, "/home/app-runner", c2Actual.HomeDir)
+	assert.True(t, c2Actual.LogForwarding)
 	expectedMap = make(map[string]string)
 	expectedMap["CONFIG"] = "config-test"
 	expectedMap["HELLO_WORLD"] = "hello-world"
-	assert.Equal(t, expectedMap, a.Configs[1].EnvVars)
+	assert.Equal(t, expectedMap, c2Actual.EnvVars)
 }
 
 func Test_ConfigExists(t *testing.T) {
@@ -172,10 +173,29 @@ func Test_ConfigExists(t *testing.T) {
 		LogForwarding: true,
 		EnvVars:       map[string]string{"HELLO_WORLD": "hello-world", "CONFIG": "config-test"},
 	}
-	appConfigs := AppConfigs{[]Config{c1, c2}}
+
+	appConfigs := AppConfigs{
+		map[string]Config{
+			configToKey(c1): c1,
+			configToKey(c2): c2,
+		},
+	}
 	exists := appConfigs.ConfigExists(c1)
 	assert.True(t, exists, "Config should exist in the app configs struct")
 
 	exists = appConfigs.ConfigExists(c3)
 	assert.False(t, exists, "Config should NOT exist in the app configs struct")
+}
+
+func Test_configToKey(t *testing.T) {
+	c1 := Config{
+		RepoName:      "andrewmarklloyd/pi-test",
+		ManifestName:  "pi-test-arm",
+		HomeDir:       "/home/pi",
+		AppUser:       "pi",
+		LogForwarding: false,
+		EnvVars:       map[string]string{"MY_CONFIG": "foobar", "HELLO_CONFIG": "testing"},
+	}
+	k := configToKey(c1)
+	assert.Equal(t, "andrewmarklloyd_pi-test_pi-test-arm", k)
 }

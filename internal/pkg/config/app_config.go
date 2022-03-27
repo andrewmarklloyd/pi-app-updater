@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
 
 type AppConfigs struct {
-	Configs []Config `json:"configs"`
+	Map map[string]Config `json:"map"`
 }
 
 func GetAppConfigs(path string) (AppConfigs, error) {
@@ -17,7 +18,7 @@ func GetAppConfigs(path string) (AppConfigs, error) {
 	yamlFile, err := ioutil.ReadFile(path)
 	if err != nil {
 		if err.Error() == fmt.Sprintf("open %s: no such file or directory", path) {
-			return AppConfigs{Configs: []Config{}}, nil
+			return AppConfigs{Map: map[string]Config{}}, nil
 		}
 		return emptyAppConfigs, fmt.Errorf("reading app configs yaml file: %s", err)
 	}
@@ -46,10 +47,10 @@ func (a *AppConfigs) WriteAppConfigs(path string) error {
 }
 
 func (a *AppConfigs) ConfigExists(c Config) bool {
-	for _, existing := range a.Configs {
-		if existing.RepoName == c.RepoName && existing.ManifestName == c.ManifestName {
-			return true
-		}
-	}
-	return false
+	_, ok := a.Map[configToKey(c)]
+	return ok
+}
+
+func configToKey(c Config) string {
+	return strings.ReplaceAll(fmt.Sprintf("%s_%s", c.RepoName, c.ManifestName), "/", "_")
 }
