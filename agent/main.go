@@ -14,6 +14,10 @@ import (
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/mqtt"
 )
 
+const (
+	appsConfigPath = "/usr/local/src/.pi-app-deployer.app.config"
+)
+
 var logger = log.New(os.Stdout, "[pi-app-deployer-Agent] ", log.LstdFlags)
 
 func main() {
@@ -93,8 +97,16 @@ func main() {
 
 	agent := newAgent(cfg, client, ghApiToken, herokuAPIKey, serverApiKey)
 
+	appConfigs, err := config.GetAppConfigs(appsConfigPath)
+	if err != nil {
+		logger.Fatalln("error getting app configs:", err)
+	}
+
 	if *install {
-		// check for existing .pi-app-deployer-agent.config. if already exists append config passed in from install. If not exists create it
+		if appConfigs.ConfigExists(cfg) {
+			logger.Println("App already exists in app configs file", appsConfigPath)
+		}
+
 		enabled, err := file.SystemdUnitEnabled(cfg.ManifestName)
 		if err != nil {
 			logger.Fatalln("error checking if app is installed already: ", err)
