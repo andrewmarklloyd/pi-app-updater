@@ -21,6 +21,7 @@ const (
 var logger = log.New(os.Stdout, "[pi-app-deployer-Agent] ", log.LstdFlags)
 
 func main() {
+	// TODO: convert to cobra command, install sub command only needs reponame/manifestname
 	u := os.Getenv("USER")
 	if u != "root" {
 		logger.Fatalln("agent must be run as root, user found was", u)
@@ -118,6 +119,9 @@ func main() {
 		}
 
 		logger.Println("Installing application")
+		appConfigs.SetConfig(cfg)
+		appConfigs.WriteAppConfigs(appsConfigPath)
+
 		a := config.Artifact{
 			RepoName:     cfg.RepoName,
 			ManifestName: cfg.ManifestName,
@@ -127,8 +131,6 @@ func main() {
 			logger.Fatalln(fmt.Errorf("failed installation: %s", err))
 		}
 
-		appConfigs.SetConfig(cfg)
-		appConfigs.WriteAppConfigs(appsConfigPath)
 		logger.Println("Successfully installed app")
 		os.Exit(0)
 	}
