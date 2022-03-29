@@ -35,7 +35,9 @@ echo "HEROKU_API_KEY=${HEROKU_API_KEY}" > ${envFile}
 mv ${workDir}/pi-app-deployer-agent ${homeDir}
 ${homeDir}/pi-app-deployer-agent install --appUser runneradmin --repoName ${repo} --manifestName ${manifestName} --envVar MY_CONFIG=testing
 
-grep "MY_CONFIG\=testing" /home/runner/.pi-test-amd64.env >/dev/null
+ls -al /etc/systemd/system
+
+grep "MY_CONFIG\=testing" /usr/local/src/.pi-test-amd64.env >/dev/null
 diff test/test-int-appconfigs.yaml /usr/local/src/.pi-app-deployer.appconfigs.yaml
 
 sleep 10

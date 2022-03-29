@@ -185,10 +185,10 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact, cfg config.Config) 
 		return err
 	}
 
-	err = file.SetupSystemdUnits(m.Name)
-	if err != nil {
-		return err
-	}
+	// err = file.SetupSystemdUnits(m.Name)
+	// if err != nil {
+	// 	return err
+	// }
 
 	err = os.RemoveAll(dlDir)
 	if err != nil {
