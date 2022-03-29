@@ -36,6 +36,7 @@ mv ${workDir}/pi-app-deployer-agent ${homeDir}
 ${homeDir}/pi-app-deployer-agent install --appUser runneradmin --repoName ${repo} --manifestName ${manifestName} --envVar MY_CONFIG=testing
 
 grep "MY_CONFIG\=testing" /home/runner/.pi-test-amd64.env >/dev/null
+diff test/test-int-appconfigs.yaml /usr/local/src/.pi-app-deployer.appconfigs.yaml
 
 sleep 10
 journalctl -u pi-app-deployer-agent.service
