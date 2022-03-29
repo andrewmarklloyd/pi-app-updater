@@ -42,10 +42,16 @@ User=pi
 }
 
 func Test_EvalDeployerTemplate(t *testing.T) {
+	envVars := map[string]string{
+		"MY_CONFIG":    "testing",
+		"EXTRA_CONFIG": "foobar",
+	}
+
 	c := config.Config{
 		RepoName:     "andrewmarklloyd/pi-test",
 		ManifestName: "pi-test",
 		AppUser:      "pi",
+		EnvVars:      envVars,
 	}
 	serviceFile, err := EvalDeployerTemplate(c)
 	assert.NoError(t, err)
@@ -61,7 +67,7 @@ WantedBy=multi-user.target
 
 [Service]
 EnvironmentFile=/usr/local/src/.pi-app-deployer-agent.env
-ExecStart=/usr/local/src/pi-app-deployer-agent --repo-name andrewmarklloyd/pi-test --manifest-name pi-test
+ExecStart=/usr/local/src/pi-app-deployer-agent update --repoName andrewmarklloyd/pi-test --manifestName pi-test --appUser pi --envVar EXTRA_CONFIG=foobar --envVar MY_CONFIG=testing
 WorkingDirectory=/usr/local/src
 StandardOutput=inherit
 StandardError=inherit
@@ -131,19 +137,19 @@ func Test_Helpers(t *testing.T) {
 	c := config.Config{
 		RepoName:     "andrewmarklloyd/pi-test",
 		ManifestName: "pi-test",
-		AppUser:      "pi",
+		AppUser:      "runner",
 	}
-	expected := "/usr/local/src/pi-app-deployer-agent --repo-name andrewmarklloyd/pi-test --manifest-name pi-test"
+	expected := "/usr/local/src/pi-app-deployer-agent update --repoName andrewmarklloyd/pi-test --manifestName pi-test --appUser runner"
 	actual := getDeployerExecStart(c)
 	assert.Equal(t, expected, actual)
 
 	c = config.Config{
 		RepoName:      "andrewmarklloyd/pi-test",
 		ManifestName:  "pi-test",
-		AppUser:       "pi",
+		AppUser:       "runner",
 		LogForwarding: true,
 	}
-	expected = "/usr/local/src/pi-app-deployer-agent --repo-name andrewmarklloyd/pi-test --manifest-name pi-test --log-forwarding"
+	expected = "/usr/local/src/pi-app-deployer-agent update --repoName andrewmarklloyd/pi-test --manifestName pi-test --logForwarding --appUser runner"
 	actual = getDeployerExecStart(c)
 	assert.Equal(t, expected, actual)
 }

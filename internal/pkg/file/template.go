@@ -133,19 +133,28 @@ func WriteServiceEnvFile(m manifest.Manifest, herokuAPIKey, version string, cfg 
 	}
 	envTemplate := `HEROKU_API_KEY=%s
 APP_VERSION=%s`
-	var keys []string
-	for k := range cfg.EnvVars {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		envTemplate += fmt.Sprintf("\n%s=%s", k, cfg.EnvVars[k])
+	sorted := sortMap(cfg.EnvVars)
+	for k, v := range sorted {
+		envTemplate += fmt.Sprintf("\n%s=%s", k, v)
 	}
 	err := os.WriteFile(getServiceEnvFileName(m, outpath), []byte(fmt.Sprintf(envTemplate, herokuAPIKey, version)), 0644)
 	if err != nil {
 		return fmt.Errorf("writing service env file: %s", err)
 	}
 	return nil
+}
+
+func sortMap(envVars map[string]string) map[string]string {
+	var keys []string
+	var newMap = make(map[string]string, len(envVars))
+	for k := range envVars {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		newMap[k] = envVars[k]
+	}
+	return newMap
 }
 
 func getExecStartName(m manifest.Manifest, homeDir string) string {
@@ -156,6 +165,15 @@ func getDeployerExecStart(cfg config.Config) string {
 	execStart := fmt.Sprintf("%s/pi-app-deployer-agent update --repoName %s --manifestName %s", config.PiAppDeployerDir, cfg.RepoName, cfg.ManifestName)
 	if cfg.LogForwarding {
 		execStart = fmt.Sprintf("%s --logForwarding", execStart)
+	}
+	if cfg.AppUser != "" {
+		execStart = fmt.Sprintf("%s --appUser %s", execStart, cfg.AppUser)
+	}
+	if len(cfg.EnvVars) != 0 {
+		sorted := sortMap(cfg.EnvVars)
+		for k, v := range sorted {
+			execStart = fmt.Sprintf("%s --envVar %s=%s", execStart, k, v)
+		}
 	}
 	return execStart
 }
