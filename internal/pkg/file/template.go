@@ -153,9 +153,9 @@ func getExecStartName(m manifest.Manifest, homeDir string) string {
 }
 
 func getDeployerExecStart(cfg config.Config) string {
-	execStart := fmt.Sprintf("%s/pi-app-deployer-agent --repo-name %s --manifest-name %s", config.PiAppDeployerDir, cfg.RepoName, cfg.ManifestName)
+	execStart := fmt.Sprintf("%s/pi-app-deployer-agent update --repoName %s --manifestName %s", config.PiAppDeployerDir, cfg.RepoName, cfg.ManifestName)
 	if cfg.LogForwarding {
-		execStart = fmt.Sprintf("%s --log-forwarding", execStart)
+		execStart = fmt.Sprintf("%s --logForwarding", execStart)
 	}
 	return execStart
 }

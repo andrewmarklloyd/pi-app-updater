@@ -4,7 +4,6 @@ set -euo pipefail
 
 # TODO: move this to install script?
 
-os="Ubuntu"
 workDir="/home/runner/work/pi-app-deployer/pi-app-deployer"
 envFile="/usr/local/src/.pi-app-deployer-agent.env"
 
@@ -33,10 +32,6 @@ echo "HEROKU_API_KEY=${HEROKU_API_KEY}" > ${envFile}
 
 mv ${workDir}/pi-app-deployer-agent /usr/local/src/
 /usr/local/src/pi-app-deployer-agent install --appUser runneradmin --repoName ${repo} --manifestName ${manifestName} --envVar MY_CONFIG=testing
-
-cat /etc/systemd/system/pi-app-deployer-agent.service
-cat /etc/systemd/system/pi-test-amd64.service
-ls -al /usr/local/src
 
 grep "MY_CONFIG\=testing" /usr/local/src/.pi-test-amd64.env >/dev/null
 diff test/test-int-appconfigs.yaml /usr/local/src/.pi-app-deployer.appconfigs.yaml
