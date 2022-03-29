@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -14,10 +15,25 @@ var updateCmd = &cobra.Command{
 server, receives update command on new commits to Github, and
 orchestrates updating the Systemd unit.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("update called")
+		runUpdate(cmd, args)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(updateCmd)
+}
+
+func runUpdate(cmd *cobra.Command, args []string) {
+	cfg := getConfig(cmd)
+	herokuAPIKey := os.Getenv("HEROKU_API_KEY")
+	if herokuAPIKey == "" {
+		logger.Fatalln("HEROKU_API_TOKEN environment variable is required")
+	}
+
+	_, err := newAgent(herokuAPIKey)
+	if err != nil {
+		logger.Fatalln(fmt.Errorf("error creating agent: %s", err))
+	}
+
+	fmt.Println(cfg)
 }

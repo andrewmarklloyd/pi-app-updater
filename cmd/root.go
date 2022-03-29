@@ -28,4 +28,11 @@ func init() {
 	if u.Username != "root" {
 		logger.Fatalln("agent must be run as root, user found was", u.Username)
 	}
+
+	rootCmd.PersistentFlags().String("repoName", "", "Name of the Github repo including the owner")
+	rootCmd.PersistentFlags().String("manifestName", "", "Name of the pi-app-deployer manifest")
+	rootCmd.PersistentFlags().Bool("logForwarding", false, "Send application logs to server")
+	rootCmd.PersistentFlags().String("appUser", "pi", "Name of user that will run the app service")
+
+	rootCmd.PersistentFlags().Var(&varFlags, "envVar", "List of non-secret environment variable configuration, separated by =, can pass multiple values. Example: --env-var foo=bar --env-var hello=world")
 }
