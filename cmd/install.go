@@ -38,7 +38,40 @@ func init() {
 
 func runInstall(cmd *cobra.Command, args []string) {
 	cfg := getConfig(cmd)
-	fmt.Println(cfg)
+	herokuAPIKey := os.Getenv("HEROKU_API_KEY")
+	if herokuAPIKey == "" {
+		logger.Fatalln("HEROKU_API_TOKEN environment variable is required")
+	}
+
+	agent, err := newAgent(herokuAPIKey)
+	if err != nil {
+		logger.Fatalln(fmt.Errorf("error creating agent: %s", err))
+	}
+
+	appConfigs, err := config.GetAppConfigs(config.AppConfigsFile)
+	if err != nil {
+		logger.Fatalln("error getting app configs:", err)
+	}
+
+	// TODO: support updating a config?
+	if appConfigs.ConfigExists(cfg) {
+		logger.Fatalln("App already exists in app configs file", config.AppConfigsFile)
+	}
+
+	logger.Println("Installing application")
+	appConfigs.SetConfig(cfg)
+	appConfigs.WriteAppConfigs(config.AppConfigsFile)
+
+	a := config.Artifact{
+		RepoName:     cfg.RepoName,
+		ManifestName: cfg.ManifestName,
+	}
+	err = agent.handleInstall(a, cfg)
+	if err != nil {
+		logger.Fatalln(fmt.Errorf("failed installation: %s", err))
+	}
+
+	logger.Println("Successfully installed app")
 }
 
 func getConfig(cmd *cobra.Command) config.Config {

@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"encoding/json"
@@ -10,31 +10,61 @@ import (
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/config"
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/file"
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/github"
+	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/heroku"
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/mqtt"
 )
 
 type Agent struct {
-	Config            config.Config
-	MqttClient        mqtt.MqttClient
-	GHApiToken        string
-	HerokuAPIKey      string
-	ServerApiKey      string
-	DownloadDirectory string
+	MqttClient   mqtt.MqttClient
+	GHApiToken   string
+	HerokuAPIKey string
+	ServerApiKey string
 }
 
-func newAgent(cfg config.Config, client mqtt.MqttClient, ghApiToken, herokuAPIKey, serverApiKey string) Agent {
-	dlDir := strings.ReplaceAll(cfg.RepoName, "/", "_")
-	return Agent{
-		Config:            cfg,
-		MqttClient:        client,
-		GHApiToken:        ghApiToken,
-		HerokuAPIKey:      herokuAPIKey,
-		ServerApiKey:      serverApiKey,
-		DownloadDirectory: fmt.Sprintf("/tmp/%s", dlDir),
+func newAgent(herokuAPIKey string) (Agent, error) {
+	c := heroku.NewHerokuClient(herokuAPIKey)
+	envVars, err := c.GetEnvVars()
+	if err != nil {
+		return Agent{}, fmt.Errorf("Error getting env vars from Heroku: %s", err)
 	}
+
+	ghApiToken := envVars["GH_API_TOKEN"]
+	if ghApiToken == "" {
+		return Agent{}, fmt.Errorf("GH_API_TOKEN environment variable not found from Heroku")
+	}
+
+	serverApiKey := envVars["PI_APP_DEPLOYER_API_KEY"]
+	if serverApiKey == "" {
+		return Agent{}, fmt.Errorf("PI_APP_DEPLOYER_API_KEY environment variable not found from Heroku")
+	}
+
+	user := envVars["CLOUDMQTT_AGENT_USER"]
+	if user == "" {
+		return Agent{}, fmt.Errorf("CLOUDMQTT_AGENT_USER environment variable not found from Heroku")
+	}
+
+	password := envVars["CLOUDMQTT_AGENT_PASSWORD"]
+	if password == "" {
+		return Agent{}, fmt.Errorf("CLOUDMQTT_AGENT_PASSWORD environment variable not found from Heroku")
+	}
+
+	mqttURL := envVars["CLOUDMQTT_URL"]
+	if mqttURL == "" {
+		return Agent{}, fmt.Errorf("CLOUDMQTT_URL environment variable not found from heroku")
+	}
+
+	mqttAddr := fmt.Sprintf("mqtt://%s:%s@%s", user, password, mqttURL)
+	client := mqtt.NewMQTTClient(mqttAddr, *logger)
+
+	return Agent{
+		MqttClient:   client,
+		GHApiToken:   ghApiToken,
+		HerokuAPIKey: herokuAPIKey,
+		ServerApiKey: serverApiKey,
+	}, nil
 }
 
-func (a *Agent) handleRepoUpdate(artifact config.Artifact) error {
+func (a *Agent) handleRepoUpdate(artifact config.Artifact, cfg config.Config) error {
 	logger.Println(fmt.Sprintf("updating app for repository %s", artifact.RepoName))
 
 	url, err := github.GetDownloadURLWithRetries(artifact, false)
@@ -42,7 +72,7 @@ func (a *Agent) handleRepoUpdate(artifact config.Artifact) error {
 		return err
 	}
 	artifact.ArchiveDownloadURL = url
-	err = a.installOrUpdateApp(artifact)
+	err = a.installOrUpdateApp(artifact, cfg)
 	if err != nil {
 		return err
 	}
@@ -50,7 +80,7 @@ func (a *Agent) handleRepoUpdate(artifact config.Artifact) error {
 	return nil
 }
 
-func (a *Agent) handleInstall(artifact config.Artifact) error {
+func (a *Agent) handleInstall(artifact config.Artifact, cfg config.Config) error {
 	url, err := github.GetDownloadURLWithRetries(artifact, true)
 	if err != nil {
 		logger.Fatalln(fmt.Errorf("getting download url for latest release: %s", err))
@@ -59,7 +89,7 @@ func (a *Agent) handleInstall(artifact config.Artifact) error {
 	artifact.SHA = "HEAD"
 	artifact.ArchiveDownloadURL = url
 
-	err = a.installOrUpdateApp(artifact)
+	err = a.installOrUpdateApp(artifact, cfg)
 	if err != nil {
 		return err
 	}
@@ -67,39 +97,39 @@ func (a *Agent) handleInstall(artifact config.Artifact) error {
 	return nil
 }
 
-func (a *Agent) installOrUpdateApp(artifact config.Artifact) error {
-
-	err := file.DownloadExtract(artifact.ArchiveDownloadURL, a.DownloadDirectory, a.GHApiToken)
+func (a *Agent) installOrUpdateApp(artifact config.Artifact, cfg config.Config) error {
+	dlDir := getDownloadDir(artifact)
+	err := file.DownloadExtract(artifact.ArchiveDownloadURL, dlDir, a.GHApiToken)
 	if err != nil {
 		return fmt.Errorf("downloading and extracting artifact: %s", err)
 	}
 
-	m, err := manifest.GetManifest(fmt.Sprintf("%s/.pi-app-deployer.yaml", a.DownloadDirectory), a.Config.ManifestName)
+	m, err := manifest.GetManifest(fmt.Sprintf("%s/.pi-app-deployer.yaml", dlDir), artifact.ManifestName)
 	if err != nil {
-		return fmt.Errorf("getting manifest from directory %s: %s", a.DownloadDirectory, err)
+		return fmt.Errorf("getting manifest from directory %s: %s", dlDir, err)
 	}
 
-	err = config.ValidateEnvVars(m, a.Config)
+	err = config.ValidateEnvVars(m, cfg)
 	if err != nil {
 		return fmt.Errorf("validating manifest and config env vars: %s", err)
 	}
 
-	err = file.WriteServiceEnvFile(m, a.HerokuAPIKey, artifact.SHA, a.Config)
+	err = file.WriteServiceEnvFile(m, a.HerokuAPIKey, artifact.SHA, cfg, "")
 	if err != nil {
 		return fmt.Errorf("writing service file environment file: %s", err)
 	}
 
-	serviceUnit, err := file.EvalServiceTemplate(m, a.Config.HomeDir, a.Config.AppUser)
+	serviceUnit, err := file.EvalServiceTemplate(m, cfg.AppUser)
 	if err != nil {
 		return fmt.Errorf("rendering service template: %s", err)
 	}
 
-	runScript, err := file.EvalRunScriptTemplate(m, artifact.SHA, a.Config.HomeDir)
+	runScript, err := file.EvalRunScriptTemplate(m, artifact.SHA)
 	if err != nil {
 		return fmt.Errorf("rendering runscript template: %s", err)
 	}
 
-	deployerFile, err := file.EvalDeployerTemplate(a.Config)
+	deployerFile, err := file.EvalDeployerTemplate(cfg)
 	if err != nil {
 		return fmt.Errorf("rendering deployer template: %s", err)
 	}
@@ -111,20 +141,20 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact) error {
 	}
 
 	serviceFile := fmt.Sprintf("%s.service", m.Name)
-	serviceFileOutputPath := fmt.Sprintf("%s/%s", a.DownloadDirectory, serviceFile)
+	serviceFileOutputPath := fmt.Sprintf("%s/%s", dlDir, serviceFile)
 	err = os.WriteFile(serviceFileOutputPath, []byte(serviceUnit), 0644)
 	if err != nil {
 		return fmt.Errorf("writing service file: %s", err)
 	}
 
 	runScriptFile := fmt.Sprintf("run-%s.sh", m.Name)
-	runScriptOutputPath := fmt.Sprintf("%s/%s", a.DownloadDirectory, runScriptFile)
+	runScriptOutputPath := fmt.Sprintf("%s/%s", dlDir, runScriptFile)
 	err = os.WriteFile(runScriptOutputPath, []byte(runScript), 0644)
 	if err != nil {
 		return fmt.Errorf("writing run script: %s", err)
 	}
 
-	deployerServiceFileOutputPath := fmt.Sprintf("%s/%s", a.DownloadDirectory, "pi-app-deployer-agent.service")
+	deployerServiceFileOutputPath := fmt.Sprintf("%s/%s", dlDir, "pi-app-deployer-agent.service")
 	err = os.WriteFile(deployerServiceFileOutputPath, []byte(deployerFile), 0644)
 	if err != nil {
 		return fmt.Errorf("writing deployer service file: %s", err)
@@ -135,12 +165,12 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact) error {
 		return err
 	}
 
-	tmpBinarypath := fmt.Sprintf("%s/%s", a.DownloadDirectory, m.Executable)
-	packageBinaryOutputPath := fmt.Sprintf("%s/%s", a.Config.HomeDir, m.Executable)
+	tmpBinarypath := fmt.Sprintf("%s/%s", dlDir, m.Executable)
+	packageBinaryOutputPath := fmt.Sprintf("%s/%s", config.PiAppDeployerDir, m.Executable)
 
 	var srcDestMap = map[string]string{
 		serviceFileOutputPath:         fmt.Sprintf("/etc/systemd/system/%s.service", m.Name),
-		runScriptOutputPath:           fmt.Sprintf("%s/%s", a.Config.HomeDir, runScriptFile),
+		runScriptOutputPath:           fmt.Sprintf("%s/%s", config.PiAppDeployerDir, runScriptFile),
 		tmpBinarypath:                 packageBinaryOutputPath,
 		deployerServiceFileOutputPath: "/etc/systemd/system/pi-app-deployer-agent.service",
 	}
@@ -150,7 +180,7 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact) error {
 		return err
 	}
 
-	err = file.MakeExecutable([]string{fmt.Sprintf("%s/%s", a.Config.HomeDir, runScriptFile), packageBinaryOutputPath})
+	err = file.MakeExecutable([]string{fmt.Sprintf("%s/%s", config.PiAppDeployerDir, runScriptFile), packageBinaryOutputPath})
 	if err != nil {
 		return err
 	}
@@ -160,7 +190,7 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact) error {
 		return err
 	}
 
-	err = os.RemoveAll(a.DownloadDirectory)
+	err = os.RemoveAll(dlDir)
 	if err != nil {
 		return fmt.Errorf("%s", err)
 	}
@@ -191,4 +221,8 @@ func (a *Agent) publishUpdateCondition(c config.UpdateCondition) error {
 		return fmt.Errorf("publishing update condition message: %s", err)
 	}
 	return nil
+}
+
+func getDownloadDir(a config.Artifact) string {
+	return fmt.Sprintf("/tmp/%s", strings.ReplaceAll(a.RepoName, "/", "_"))
 }

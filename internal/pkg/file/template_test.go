@@ -14,7 +14,7 @@ func Test_ServiceTemplate(t *testing.T) {
 	m, err := manifest.GetManifest("../../../test/templates/fully-defined-manifest.yaml", "sample-app")
 	assert.NoError(t, err)
 
-	serviceFile, err := EvalServiceTemplate(m, "/home/pi", "pi")
+	serviceFile, err := EvalServiceTemplate(m, "pi")
 	assert.NoError(t, err)
 
 	expectedServiceFile := `[Unit]
@@ -28,9 +28,9 @@ StartLimitBurst=10
 WantedBy=multi-user.target
 
 [Service]
-EnvironmentFile=/home/pi/.sample-app.env
-ExecStart=/home/pi/run-sample-app.sh
-WorkingDirectory=/home/pi
+EnvironmentFile=/usr/local/src/.sample-app.env
+ExecStart=/usr/local/src/run-sample-app.sh
+WorkingDirectory=/usr/local/src
 StandardOutput=inherit
 StandardError=inherit
 TimeoutStartSec=7
@@ -45,7 +45,6 @@ func Test_EvalDeployerTemplate(t *testing.T) {
 	c := config.Config{
 		RepoName:     "andrewmarklloyd/pi-test",
 		ManifestName: "pi-test",
-		HomeDir:      "/home/pi",
 		AppUser:      "pi",
 	}
 	serviceFile, err := EvalDeployerTemplate(c)
@@ -61,9 +60,9 @@ StartLimitBurst=10
 WantedBy=multi-user.target
 
 [Service]
-EnvironmentFile=/home/pi/.pi-app-deployer-agent.env
-ExecStart=/home/pi/pi-app-deployer-agent --repo-name andrewmarklloyd/pi-test --manifest-name pi-test
-WorkingDirectory=/home/pi
+EnvironmentFile=/usr/local/src/.pi-app-deployer-agent.env
+ExecStart=/usr/local/src/pi-app-deployer-agent --repo-name andrewmarklloyd/pi-test --manifest-name pi-test
+WorkingDirectory=/usr/local/src
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
@@ -90,7 +89,7 @@ func Test_EvalRunScriptTemplate(t *testing.T) {
 	m, err := manifest.GetManifest("../../../test/templates/fully-defined-manifest.yaml", "sample-app")
 	assert.NoError(t, err)
 
-	runScriptFile, err := EvalRunScriptTemplate(m, "b1946ac92492d2347c6235b4d2611184", "/home/pi")
+	runScriptFile, err := EvalRunScriptTemplate(m, "b1946ac92492d2347c6235b4d2611184")
 	assert.NoError(t, err)
 
 	expectedRunScriptFile := `#!/bin/bash
@@ -122,7 +121,7 @@ fi
 
 unset HEROKU_API_KEY
 
-/home/pi/sample-app-agent
+/usr/local/src/sample-app-agent
 `
 
 	assert.Equal(t, expectedRunScriptFile, runScriptFile)
@@ -132,21 +131,19 @@ func Test_Helpers(t *testing.T) {
 	c := config.Config{
 		RepoName:     "andrewmarklloyd/pi-test",
 		ManifestName: "pi-test",
-		HomeDir:      "/home/pi",
 		AppUser:      "pi",
 	}
-	expected := "/home/pi/pi-app-deployer-agent --repo-name andrewmarklloyd/pi-test --manifest-name pi-test"
+	expected := "/usr/local/src/pi-app-deployer-agent --repo-name andrewmarklloyd/pi-test --manifest-name pi-test"
 	actual := getDeployerExecStart(c)
 	assert.Equal(t, expected, actual)
 
 	c = config.Config{
 		RepoName:      "andrewmarklloyd/pi-test",
 		ManifestName:  "pi-test",
-		HomeDir:       "/home/pi",
 		AppUser:       "pi",
 		LogForwarding: true,
 	}
-	expected = "/home/pi/pi-app-deployer-agent --repo-name andrewmarklloyd/pi-test --manifest-name pi-test --log-forwarding"
+	expected = "/usr/local/src/pi-app-deployer-agent --repo-name andrewmarklloyd/pi-test --manifest-name pi-test --log-forwarding"
 	actual = getDeployerExecStart(c)
 	assert.Equal(t, expected, actual)
 }
@@ -161,10 +158,9 @@ func Test_WriteServiceEnvFile(t *testing.T) {
 	}
 
 	cfg := config.Config{
-		HomeDir: "/tmp",
 		EnvVars: envVars,
 	}
-	err = WriteServiceEnvFile(m, "abcdefg", "hijklmn", cfg)
+	err = WriteServiceEnvFile(m, "abcdefg", "hijklmn", cfg, "/tmp")
 	assert.NoError(t, err)
 	b, err := os.ReadFile("/tmp/.sample-app.env")
 	assert.NoError(t, err)
