@@ -11,7 +11,7 @@ import (
 
 func Test_NoConfig(t *testing.T) {
 	u, _ := uuid.NewUUID()
-	testConfigPath := fmt.Sprintf("/tmp/.pi-app-deployer.app.config.%s", u.String())
+	testConfigPath := fmt.Sprintf("/tmp/.pi-app-deployer.app.%s.yaml", u.String())
 	appConfigs, err := GetAppConfigs(testConfigPath)
 	assert.NoError(t, err)
 	assert.NotNil(t, appConfigs)
@@ -30,7 +30,7 @@ func Test_CreateConfig(t *testing.T) {
 	a := AppConfigs{Map: map[string]Config{"andrewmarklloyd_pi-test_pi-test-arm": c}}
 
 	u, _ := uuid.NewUUID()
-	testConfigPath := fmt.Sprintf("/tmp/.pi-app-deployer.app.config.%s", u.String())
+	testConfigPath := fmt.Sprintf("/tmp/.pi-app-deployer.app.%s.yaml", u.String())
 
 	err := a.WriteAppConfigs(testConfigPath)
 	assert.NoError(t, err)
@@ -89,7 +89,7 @@ func Test_CreateMultipleConfigs(t *testing.T) {
 	}
 
 	u, _ := uuid.NewUUID()
-	testConfigPath := fmt.Sprintf("/tmp/.pi-app-deployer.app.config.%s", u.String())
+	testConfigPath := fmt.Sprintf("/tmp/.pi-app-deployer.app.%s.yaml", u.String())
 	err := appConfigs.WriteAppConfigs(testConfigPath)
 	assert.NoError(t, err)
 
