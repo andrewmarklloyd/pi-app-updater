@@ -2,7 +2,7 @@ map:
   andrewmarklloyd_pi-test_pi-test-amd64:
     repoName: andrewmarklloyd/pi-test
     manifestName: pi-test-amd64
-    appUser: pi
+    appUser: runneradmin
     logForwarding: false
     envVars:
-      MY_CONFIG: hello
+      MY_CONFIG: testing
