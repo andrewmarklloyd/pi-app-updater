@@ -43,6 +43,11 @@ func runUpdate(cmd *cobra.Command, args []string) {
 		logger.Fatalln("error getting app configs:", err)
 	}
 
+	err = agent.MqttClient.Connect()
+	if err != nil {
+		logger.Fatalln("connecting to mqtt: ", err)
+	}
+
 	agent.startLogForwarder(appConfigs, func(l config.Log) {
 		json, err := json.Marshal(l)
 		if err != nil {
@@ -54,11 +59,6 @@ func runUpdate(cmd *cobra.Command, args []string) {
 			logger.Println(fmt.Sprintf("error publishing log forwarding message: %s", err))
 		}
 	})
-
-	err = agent.MqttClient.Connect()
-	if err != nil {
-		logger.Fatalln("connecting to mqtt: ", err)
-	}
 
 	agent.MqttClient.Subscribe(config.RepoPushTopic, func(message string) {
 		var artifact config.Artifact
