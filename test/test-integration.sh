@@ -52,6 +52,5 @@ while [[ ${found} == "false" ]]; do
   if [[ ${out} == *"${sha}"* ]]; then
     found="true"
   fi
-  "Running application now, version: ${sha}"
   sleep 10
 done
