@@ -17,16 +17,6 @@ if [[ -z ${HEROKU_API_KEY} ]]; then
   exit 1
 fi
 
-if ! command -v jq &> /dev/null; then
-  apt-get update
-  apt-get install jq -y
-fi
-
-if ! command -v curl &> /dev/null; then
-  apt-get update
-  apt-get install curl -y
-fi
-
 rm -f ${envFile}
 cat <<< "HEROKU_API_KEY=${HEROKU_API_KEY}" > ${envFile}
 
