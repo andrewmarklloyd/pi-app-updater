@@ -28,7 +28,7 @@ if ! command -v curl &> /dev/null; then
 fi
 
 rm -f ${envFile}
-echo "HEROKU_API_KEY=${HEROKU_API_KEY}" > ${envFile}
+cat <<< "HEROKU_API_KEY=${HEROKU_API_KEY}" > ${envFile}
 
 mv ${workDir}/pi-app-deployer-agent /usr/local/src/
 /usr/local/src/pi-app-deployer-agent install --appUser runneradmin --repoName ${repo} --manifestName ${manifestName} --envVar MY_CONFIG=testing --logForwarding
