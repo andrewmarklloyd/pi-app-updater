@@ -27,6 +27,13 @@ pi-app-deployer-agent.`,
 func init() {
 	installCmd := NewInstallCmd()
 	rootCmd.AddCommand(installCmd)
+
+	installCmd.PersistentFlags().String("repoName", "", "Name of the Github repo including the owner")
+	installCmd.PersistentFlags().String("manifestName", "", "Name of the pi-app-deployer manifest")
+	installCmd.PersistentFlags().Bool("logForwarding", false, "Send application logs to server")
+	installCmd.PersistentFlags().String("appUser", "pi", "Name of user that will run the app service")
+
+	installCmd.PersistentFlags().Var(&varFlags, "envVar", "List of non-secret environment variable configuration, separated by =, can pass multiple values. Example: --env-var foo=bar --env-var hello=world")
 }
 
 func runInstall(cmd *cobra.Command, args []string) {

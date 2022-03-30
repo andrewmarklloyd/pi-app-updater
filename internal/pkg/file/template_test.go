@@ -67,7 +67,7 @@ WantedBy=multi-user.target
 
 [Service]
 EnvironmentFile=/usr/local/src/.pi-app-deployer-agent.env
-ExecStart=/usr/local/src/pi-app-deployer-agent update --repoName andrewmarklloyd/pi-test --manifestName pi-test --appUser pi --envVar EXTRA_CONFIG=foobar --envVar MY_CONFIG=testing
+ExecStart=/usr/local/src/pi-app-deployer-agent update
 WorkingDirectory=/usr/local/src
 StandardOutput=inherit
 StandardError=inherit
@@ -77,18 +77,6 @@ User=root
 `
 
 	assert.Equal(t, expectedServiceFile, serviceFile)
-}
-
-func Test_EvalDeployerTemplateErrs(t *testing.T) {
-	c := config.Config{}
-	serviceFile, err := EvalDeployerTemplate(c)
-	assert.Empty(t, serviceFile)
-	expectedErr := `2 errors occurred:
-	* config repo name is required
-	* config manifest name is required
-
-`
-	assert.Equal(t, err.Error(), expectedErr)
 }
 
 func Test_EvalRunScriptTemplate(t *testing.T) {
@@ -139,7 +127,7 @@ func Test_Helpers(t *testing.T) {
 		ManifestName: "pi-test",
 		AppUser:      "runner",
 	}
-	expected := "/usr/local/src/pi-app-deployer-agent update --repoName andrewmarklloyd/pi-test --manifestName pi-test --appUser runner"
+	expected := "/usr/local/src/pi-app-deployer-agent update"
 	actual := getDeployerExecStart(c)
 	assert.Equal(t, expected, actual)
 
@@ -149,7 +137,7 @@ func Test_Helpers(t *testing.T) {
 		AppUser:       "runner",
 		LogForwarding: true,
 	}
-	expected = "/usr/local/src/pi-app-deployer-agent update --repoName andrewmarklloyd/pi-test --manifestName pi-test --logForwarding --appUser runner"
+	expected = "/usr/local/src/pi-app-deployer-agent update"
 	actual = getDeployerExecStart(c)
 	assert.Equal(t, expected, actual)
 }

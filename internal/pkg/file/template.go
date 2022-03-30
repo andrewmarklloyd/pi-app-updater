@@ -11,7 +11,6 @@ import (
 
 	"github.com/andrewmarklloyd/pi-app-deployer/api/v1/manifest"
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/config"
-	"github.com/hashicorp/go-multierror"
 )
 
 //go:embed templates/run.tmpl
@@ -89,24 +88,10 @@ func EvalRunScriptTemplate(m manifest.Manifest, version string) (string, error) 
 }
 
 func EvalDeployerTemplate(cfg config.Config) (string, error) {
-	var result error
-
-	if cfg.RepoName == "" {
-		result = multierror.Append(result, fmt.Errorf("config repo name is required"))
-	}
-
-	if cfg.ManifestName == "" {
-		result = multierror.Append(result, fmt.Errorf("config manifest name is required"))
-	}
-
 	d := DeployerTemplateData{
 		EnvironmentFile:  getDeployerEnvFileName(config.PiAppDeployerDir),
 		WorkingDirectory: config.PiAppDeployerDir,
 		ExecStart:        getDeployerExecStart(cfg),
-	}
-
-	if result != nil {
-		return "", result
 	}
 
 	return evalTemplate(deployerTemplate, d)
@@ -162,19 +147,7 @@ func getExecStartName(m manifest.Manifest, homeDir string) string {
 }
 
 func getDeployerExecStart(cfg config.Config) string {
-	execStart := fmt.Sprintf("%s/pi-app-deployer-agent update --repoName %s --manifestName %s", config.PiAppDeployerDir, cfg.RepoName, cfg.ManifestName)
-	if cfg.LogForwarding {
-		execStart = fmt.Sprintf("%s --logForwarding", execStart)
-	}
-	if cfg.AppUser != "" {
-		execStart = fmt.Sprintf("%s --appUser %s", execStart, cfg.AppUser)
-	}
-	if len(cfg.EnvVars) != 0 {
-		sorted := sortMap(cfg.EnvVars)
-		for k, v := range sorted {
-			execStart = fmt.Sprintf("%s --envVar %s=%s", execStart, k, v)
-		}
-	}
+	execStart := fmt.Sprintf("%s/pi-app-deployer-agent update", config.PiAppDeployerDir)
 	return execStart
 }
 
