@@ -46,6 +46,7 @@ git commit -m "Pi App Deployer Test Run ${uuid}"
 sha=$(git rev-parse HEAD)
 git push origin main
 
+echo "Waiting for successful update of service"
 found="false"
 while [[ ${found} == "false" ]]; do
   out=$(journalctl -u pi-test-amd64.service -n 100)
@@ -54,3 +55,5 @@ while [[ ${found} == "false" ]]; do
   fi
   sleep 10
 done
+
+echo "Successfully ran integration tests! No update this to use Go testing :)"
