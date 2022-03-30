@@ -66,7 +66,7 @@ func newAgent(herokuAPIKey string) (Agent, error) {
 }
 
 func (a *Agent) handleRepoUpdate(artifact config.Artifact, cfg config.Config) error {
-	logger.Println(fmt.Sprintf("updating app for repository %s", artifact.RepoName))
+	logger.Println(fmt.Sprintf("updating manifest %s for repository %s", artifact.ManifestName, artifact.RepoName))
 
 	url, err := github.GetDownloadURLWithRetries(artifact, false)
 	if err != nil {

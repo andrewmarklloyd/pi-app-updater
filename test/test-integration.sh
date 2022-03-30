@@ -32,7 +32,19 @@ journalctl -u pi-test-amd64.service
 systemctl is-active pi-app-deployer-agent.service
 systemctl is-active pi-test-amd64.service
 
-# use github api to trigger deploy workflow
+# trigger an update
+git clone git@github.com:andrewmarklloyd/pi-test.git
+cd pi-test
+uuid=$(uuidgen)
+echo ${uuid} >> test/integration-trigger.txt
+git add .
+git commit -m "Pi App Deployer Test Run ${uuid}"
+sha=$(git rev-parse HEAD)
 
-journalctl -u pi-app-deployer-agent.service -f
-# git push to pi-test, check for new commit
+found="false"
+while [[ ${found} == "false" ]]; do
+  out=$(journalctl -u pi-test-amd64.service -n 100)
+  if [[ ${out} == *"${sha}"* ]]
+  "Running application now, version: ${sha}"
+  sleep 10
+done

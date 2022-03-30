@@ -61,7 +61,6 @@ func runUpdate(cmd *cobra.Command, args []string) {
 	})
 
 	agent.MqttClient.Subscribe(config.RepoPushTopic, func(message string) {
-		logger.Println("Got an artifact")
 		var artifact config.Artifact
 		err := json.Unmarshal([]byte(message), &artifact)
 		if err != nil {
@@ -69,9 +68,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		logger.Println("checking each app config")
 		for _, cfg := range appConfigs.Map {
-			logger.Println("checking:", artifact.RepoName, cfg.RepoName, artifact.ManifestName, cfg.ManifestName)
 			if artifact.RepoName == cfg.RepoName && artifact.ManifestName == cfg.ManifestName {
 				logger.Println(fmt.Sprintf("updating repo %s with manifest name %s", cfg.RepoName, cfg.ManifestName))
 				updateCondition := config.UpdateCondition{
