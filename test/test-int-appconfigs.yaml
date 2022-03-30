@@ -3,6 +3,6 @@ map:
     repoName: andrewmarklloyd/pi-test
     manifestName: pi-test-amd64
     appUser: runneradmin
-    logForwarding: false
+    logForwarding: true
     envVars:
       MY_CONFIG: testing
