@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"runtime"
 	"time"
 
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/config"
+	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/file"
 	"github.com/spf13/cobra"
 )
 
@@ -43,10 +43,6 @@ func runUpdate(cmd *cobra.Command, args []string) {
 		logger.Fatalln("error getting app configs:", err)
 	}
 
-	// for k, v := range appConfigs.Map {
-	// 	fmt.Println(k, v.ManifestName, v.ManifestName)
-	// }
-
 	agent.startLogForwarder(appConfigs, func(l config.Log) {
 		json, err := json.Marshal(l)
 		if err != nil {
@@ -58,82 +54,85 @@ func runUpdate(cmd *cobra.Command, args []string) {
 			logger.Println(fmt.Sprintf("error publishing log forwarding message: %s", err))
 		}
 	})
-	logger.Println("number of goroutines:", runtime.NumGoroutine())
 
-	// err = agent.MqttClient.Connect()
-	// if err != nil {
-	// 	logger.Fatalln("connecting to mqtt: ", err)
-	// }
+	err = agent.MqttClient.Connect()
+	if err != nil {
+		logger.Fatalln("connecting to mqtt: ", err)
+	}
 
-	// updateCondition := config.UpdateCondition{
-	// 	RepoName:     cfg.RepoName,
-	// 	ManifestName: cfg.ManifestName,
-	// }
+	agent.MqttClient.Subscribe(config.RepoPushTopic, func(message string) {
+		var artifact config.Artifact
+		err := json.Unmarshal([]byte(message), &artifact)
+		if err != nil {
+			logger.Println(fmt.Sprintf("unmarshalling payload from topic %s: %s", config.RepoPushTopic, err))
+			return
+		}
 
-	// agent.MqttClient.Subscribe(config.RepoPushTopic, func(message string) {
-	// 	var artifact config.Artifact
-	// 	err := json.Unmarshal([]byte(message), &artifact)
-	// 	if err != nil {
-	// 		logger.Println(fmt.Sprintf("unmarshalling payload from topic %s: %s", config.RepoPushTopic, err))
-	// 		return
-	// 	}
-	// 	if artifact.RepoName == cfg.RepoName && artifact.ManifestName == cfg.ManifestName {
-	// 		logger.Println(fmt.Sprintf("updating repo %s with manifest name %s", cfg.RepoName, cfg.ManifestName))
-	// 		updateCondition.Status = config.StatusInProgress
-	// 		err = agent.publishUpdateCondition(updateCondition)
-	// 		if err != nil {
-	// 			// log but don't block update from proceeding
-	// 			logger.Println(err)
-	// 		}
-	// 		err := agent.handleRepoUpdate(artifact)
-	// 		if err != nil {
-	// 			logger.Println(err)
-	// 			updateCondition.Status = config.StatusErr
-	// 			err = agent.publishUpdateCondition(updateCondition)
-	// 			if err != nil {
-	// 				logger.Println(err)
-	// 			}
-	// 			return
-	// 		}
-	// 		// TODO: should check systemctl status before sending success?
-	// 		updateCondition.Status = config.StatusSuccess
-	// 		err = agent.publishUpdateCondition(updateCondition)
-	// 		if err != nil {
-	// 			logger.Println(err)
-	// 		}
-	// 	}
-	// })
+		for _, cfg := range appConfigs.Map {
+			if artifact.RepoName == cfg.RepoName && artifact.ManifestName == cfg.ManifestName {
+				logger.Println(fmt.Sprintf("updating repo %s with manifest name %s", cfg.RepoName, cfg.ManifestName))
+				updateCondition := config.UpdateCondition{
+					RepoName:     cfg.RepoName,
+					ManifestName: cfg.ManifestName,
+					Status:       config.StatusInProgress,
+				}
 
-	// agent.MqttClient.Subscribe(config.ServiceActionTopic, func(message string) {
-	// 	var payload config.ServiceActionPayload
-	// 	err := json.Unmarshal([]byte(message), &payload)
-	// 	if err != nil {
-	// 		logger.Println(fmt.Sprintf("unmarshalling payload from topic %s: %s", config.ServiceActionTopic, err))
-	// 		return
-	// 	}
-	// 	if payload.RepoName == cfg.RepoName && payload.ManifestName == cfg.ManifestName {
-	// 		logger.Println(fmt.Sprintf("Running service action %s on %s/%s", payload.Action, payload.RepoName, payload.ManifestName))
-	// 		var err error
-	// 		switch payload.Action {
-	// 		case config.ServiceActionStart:
-	// 			err = file.StartSystemdUnit(payload.ManifestName)
-	// 			break
-	// 		case config.ServiceActionStop:
-	// 			err = file.StopSystemdUnit(payload.ManifestName)
-	// 			break
-	// 		case config.ServiceActionRestart:
-	// 			err = file.RestartSystemdUnit(payload.ManifestName)
-	// 			break
-	// 		default:
-	// 			err = fmt.Errorf("Action %s is not valid", payload.Action)
-	// 			break
-	// 		}
-	// 		if err != nil {
-	// 			logger.Println(err)
-	// 		}
+				err = agent.publishUpdateCondition(updateCondition)
+				if err != nil {
+					// log but don't block update from proceeding
+					logger.Println(err)
+				}
+				err := agent.handleRepoUpdate(artifact, cfg)
+				if err != nil {
+					logger.Println(err)
+					updateCondition.Status = config.StatusErr
+					err = agent.publishUpdateCondition(updateCondition)
+					if err != nil {
+						logger.Println(err)
+					}
+					return
+				}
+				// TODO: should check systemctl status before sending success?
+				updateCondition.Status = config.StatusSuccess
+				err = agent.publishUpdateCondition(updateCondition)
+				if err != nil {
+					logger.Println(err)
+				}
+			}
+		}
+	})
 
-	// 	}
-	// })
+	agent.MqttClient.Subscribe(config.ServiceActionTopic, func(message string) {
+		var payload config.ServiceActionPayload
+		err := json.Unmarshal([]byte(message), &payload)
+		if err != nil {
+			logger.Println(fmt.Sprintf("unmarshalling payload from topic %s: %s", config.ServiceActionTopic, err))
+			return
+		}
+		for _, cfg := range appConfigs.Map {
+			if payload.RepoName == cfg.RepoName && payload.ManifestName == cfg.ManifestName {
+				logger.Println(fmt.Sprintf("Running service action %s on %s/%s", payload.Action, payload.RepoName, payload.ManifestName))
+				var err error
+				switch payload.Action {
+				case config.ServiceActionStart:
+					err = file.StartSystemdUnit(payload.ManifestName)
+					break
+				case config.ServiceActionStop:
+					err = file.StopSystemdUnit(payload.ManifestName)
+					break
+				case config.ServiceActionRestart:
+					err = file.RestartSystemdUnit(payload.ManifestName)
+					break
+				default:
+					err = fmt.Errorf("Action %s is not valid", payload.Action)
+					break
+				}
+				if err != nil {
+					logger.Println(err)
+				}
+			}
+		}
+	})
 
 	go forever()
 	select {} // block forever
