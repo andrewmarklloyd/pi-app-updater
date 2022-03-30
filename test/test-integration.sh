@@ -46,12 +46,12 @@ git commit -m "Pi App Deployer Test Run ${uuid}"
 sha=$(git rev-parse HEAD)
 git push origin main
 
-# found="false"
-# while [[ ${found} == "false" ]]; do
-#   out=$(journalctl -u pi-test-amd64.service -n 100)
-#   if [[ ${out} == *"${sha}"* ]]; then
-#     found="true"
-#   fi
-#   "Running application now, version: ${sha}"
-#   sleep 10
-# done
+found="false"
+while [[ ${found} == "false" ]]; do
+  out=$(journalctl -u pi-test-amd64.service -n 100)
+  if [[ ${out} == *"${sha}"* ]]; then
+    found="true"
+  fi
+  "Running application now, version: ${sha}"
+  sleep 10
+done
