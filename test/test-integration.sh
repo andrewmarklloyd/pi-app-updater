@@ -37,7 +37,7 @@ git config user.name "GitHub Actions Bot"
 git config user.email "<>"
 git clone https://github.com/andrewmarklloyd/pi-test.git
 cd pi-test
-git remote set-url origin https://andrewmarklloyd:${GH_TOKEN}@github.com/andrewmarklloyd/pi-test.git
+git remote set-url origin https://andrewmarklloyd:${GITHUB_TOKEN}@github.com/andrewmarklloyd/pi-test.git
 uuid=$(uuidgen)
 echo "Test run: ${uuid}"
 echo ${uuid} >> test/integration-trigger.txt
