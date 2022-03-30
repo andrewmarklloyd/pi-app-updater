@@ -154,6 +154,7 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact, cfg config.Config) 
 		return fmt.Errorf("writing run script: %s", err)
 	}
 
+	// TODO: if this is an update, do we want to overwrite? probably not
 	deployerServiceFileOutputPath := fmt.Sprintf("%s/%s", dlDir, "pi-app-deployer-agent.service")
 	err = os.WriteFile(deployerServiceFileOutputPath, []byte(deployerFile), 0644)
 	if err != nil {
