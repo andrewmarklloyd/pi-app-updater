@@ -71,7 +71,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 
 		logger.Println("checking each app config")
 		for _, cfg := range appConfigs.Map {
-			logger.Println("checking:", cfg.ManifestName)
+			logger.Println("checking:", artifact.RepoName, cfg.RepoName, artifact.ManifestName, cfg.ManifestName)
 			if artifact.RepoName == cfg.RepoName && artifact.ManifestName == cfg.ManifestName {
 				logger.Println(fmt.Sprintf("updating repo %s with manifest name %s", cfg.RepoName, cfg.ManifestName))
 				updateCondition := config.UpdateCondition{

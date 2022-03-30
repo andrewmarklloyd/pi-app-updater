@@ -32,6 +32,7 @@ journalctl -u pi-test-amd64.service
 systemctl is-active pi-app-deployer-agent.service
 systemctl is-active pi-test-amd64.service
 
+# use github api to trigger deploy workflow
 
 journalctl -u pi-app-deployer-agent.service -f
 # git push to pi-test, check for new commit
