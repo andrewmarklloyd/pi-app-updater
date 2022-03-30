@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euox pipefail
+set -euo pipefail
 
 # TODO: move this to install script?
 
@@ -33,20 +33,25 @@ systemctl is-active pi-app-deployer-agent.service
 systemctl is-active pi-test-amd64.service
 
 # trigger an update
-git clone git@github.com:andrewmarklloyd/pi-test.git
+git config user.name "GitHub Actions Bot"
+git config user.email "<>"
+git clone https://github.com/andrewmarklloyd/pi-test.git
 cd pi-test
+git remote set-url origin https://andrewmarklloyd:${GH_TOKEN}@github.com/andrewmarklloyd/pi-test.git
 uuid=$(uuidgen)
+echo "Test run: ${uuid}"
 echo ${uuid} >> test/integration-trigger.txt
 git add .
 git commit -m "Pi App Deployer Test Run ${uuid}"
 sha=$(git rev-parse HEAD)
+git push origin main
 
-found="false"
-while [[ ${found} == "false" ]]; do
-  out=$(journalctl -u pi-test-amd64.service -n 100)
-  if [[ ${out} == *"${sha}"* ]]; then
-    found="true"
-  fi
-  "Running application now, version: ${sha}"
-  sleep 10
-done
+# found="false"
+# while [[ ${found} == "false" ]]; do
+#   out=$(journalctl -u pi-test-amd64.service -n 100)
+#   if [[ ${out} == *"${sha}"* ]]; then
+#     found="true"
+#   fi
+#   "Running application now, version: ${sha}"
+#   sleep 10
+# done
