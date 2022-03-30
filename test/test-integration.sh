@@ -44,7 +44,9 @@ sha=$(git rev-parse HEAD)
 found="false"
 while [[ ${found} == "false" ]]; do
   out=$(journalctl -u pi-test-amd64.service -n 100)
-  if [[ ${out} == *"${sha}"* ]]
+  if [[ ${out} == *"${sha}"* ]]; then
+    found="true"
+  fi
   "Running application now, version: ${sha}"
   sleep 10
 done
