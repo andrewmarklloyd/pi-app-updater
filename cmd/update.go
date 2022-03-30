@@ -141,8 +141,8 @@ func runUpdate(cmd *cobra.Command, args []string) {
 	// 	})
 	// }
 
-	// go forever()
-	// select {} // block forever
+	go forever()
+	select {} // block forever
 
 }
 

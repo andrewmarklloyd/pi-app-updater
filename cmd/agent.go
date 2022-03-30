@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -154,7 +155,6 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact, cfg config.Config) 
 		return fmt.Errorf("writing run script: %s", err)
 	}
 
-	// TODO: if this is an update, do we want to overwrite? probably not
 	deployerServiceFileOutputPath := fmt.Sprintf("%s/%s", dlDir, "pi-app-deployer-agent.service")
 	err = os.WriteFile(deployerServiceFileOutputPath, []byte(deployerFile), 0644)
 	if err != nil {
@@ -166,14 +166,23 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact, cfg config.Config) 
 		return err
 	}
 
+	// Don't overwrite agent systemd unit if already exists
+	if _, err := os.Stat("/etc/systemd/system/pi-app-deployer-agent.service"); errors.Is(err, os.ErrNotExist) {
+		err = file.CopyWithOwnership(map[string]string{
+			deployerServiceFileOutputPath: "/etc/systemd/system/pi-app-deployer-agent.service",
+		})
+		if err != nil {
+			return err
+		}
+	}
+
 	tmpBinarypath := fmt.Sprintf("%s/%s", dlDir, m.Executable)
 	packageBinaryOutputPath := fmt.Sprintf("%s/%s", config.PiAppDeployerDir, m.Executable)
 
 	var srcDestMap = map[string]string{
-		serviceFileOutputPath:         fmt.Sprintf("/etc/systemd/system/%s.service", m.Name),
-		runScriptOutputPath:           fmt.Sprintf("%s/%s", config.PiAppDeployerDir, runScriptFile),
-		tmpBinarypath:                 packageBinaryOutputPath,
-		deployerServiceFileOutputPath: "/etc/systemd/system/pi-app-deployer-agent.service",
+		serviceFileOutputPath: fmt.Sprintf("/etc/systemd/system/%s.service", m.Name),
+		runScriptOutputPath:   fmt.Sprintf("%s/%s", config.PiAppDeployerDir, runScriptFile),
+		tmpBinarypath:         packageBinaryOutputPath,
 	}
 
 	err = file.CopyWithOwnership(srcDestMap)
