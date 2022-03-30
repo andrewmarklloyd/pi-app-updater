@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/config"
@@ -31,7 +33,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 		logger.Fatalln("HEROKU_API_TOKEN environment variable is required")
 	}
 
-	_, err := newAgent(herokuAPIKey)
+	agent, err := newAgent(herokuAPIKey)
 	if err != nil {
 		logger.Fatalln(fmt.Errorf("error creating agent: %s", err))
 	}
@@ -41,10 +43,22 @@ func runUpdate(cmd *cobra.Command, args []string) {
 		logger.Fatalln("error getting app configs:", err)
 	}
 
-	fmt.Println(appConfigs)
-	// if !appConfigs.ConfigExists(cfg) {
-	// 	logger.Fatalln("App does not exist in app configs file:", config.AppConfigsFile)
+	// for k, v := range appConfigs.Map {
+	// 	fmt.Println(k, v.ManifestName, v.ManifestName)
 	// }
+
+	agent.startLogForwarder(appConfigs, func(l config.Log) {
+		json, err := json.Marshal(l)
+		if err != nil {
+			logger.Println(fmt.Sprintf("marshalling log forwarder message: %s", err))
+			return
+		}
+		err = agent.MqttClient.Publish(config.LogForwarderTopic, string(json))
+		if err != nil {
+			logger.Println(fmt.Sprintf("error publishing log forwarding message: %s", err))
+		}
+	})
+	logger.Println("number of goroutines:", runtime.NumGoroutine())
 
 	// err = agent.MqttClient.Connect()
 	// if err != nil {
@@ -120,26 +134,6 @@ func runUpdate(cmd *cobra.Command, args []string) {
 
 	// 	}
 	// })
-
-	// config.AppConfigs
-	// if *logForwarding {
-	// 	logger.Println(fmt.Sprintf("Log forwarding is enabled for %s", cfg.ManifestName))
-	// 	agent.startLogForwarder(cfg.ManifestName, func(log string) {
-	// 		l := config.Log{
-	// 			Message: log,
-	// 			Config:  cfg,
-	// 		}
-	// 		json, err := json.Marshal(l)
-	// 		if err != nil {
-	// 			logger.Println(fmt.Sprintf("marshalling log forwarder message: %s", err))
-	// 			return
-	// 		}
-	// 		err = agent.MqttClient.Publish(config.LogForwarderTopic, string(json))
-	// 		if err != nil {
-	// 			logger.Println(fmt.Sprintf("error publishing log forwarding message: %s", err))
-	// 		}
-	// 	})
-	// }
 
 	go forever()
 	select {} // block forever

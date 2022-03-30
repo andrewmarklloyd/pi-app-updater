@@ -207,15 +207,26 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact, cfg config.Config) 
 	return nil
 }
 
-func (a *Agent) startLogForwarder(unitName string, f func(string)) {
-	ch := make(chan string)
-	go file.TailSystemdLogs(unitName, ch)
-	for logs := range ch {
-		logLines := strings.Split(strings.Replace(logs, "\n", `\n`, -1), `\n`)
-		for _, line := range logLines {
-			if line != "" {
-				f(line)
-			}
+// TODO: is there a better way to capture closures without so much nesting?
+func (a *Agent) startLogForwarder(appConfigs config.AppConfigs, f func(config.Log)) {
+	for _, cfg := range appConfigs.Map {
+		if cfg.LogForwarding {
+			go func(n config.Config) {
+				ch := make(chan string)
+				go file.TailSystemdLogs(n.ManifestName, ch)
+				for logs := range ch {
+					logLines := strings.Split(strings.Replace(logs, "\n", `\n`, -1), `\n`)
+					for _, line := range logLines {
+						if line != "" {
+							l := config.Log{
+								Message: line,
+								Config:  n,
+							}
+							f(l)
+						}
+					}
+				}
+			}(cfg)
 		}
 	}
 }
