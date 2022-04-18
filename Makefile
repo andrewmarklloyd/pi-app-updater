@@ -3,6 +3,7 @@
 build:
 	GOARCH=arm64 GOARM=5 go build -o bin/pi-app-deployer-server server/*
 	GOOS=linux GOARCH=arm GOARM=5 go build -o bin/pi-app-deployer-agent agent/main.go
+
 test:
 	go test -v ./...
 
