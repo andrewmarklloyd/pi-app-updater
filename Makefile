@@ -1,7 +1,7 @@
 .PHONY: build test
 
 build:
-	GOARCH=arm64 GOARM=5 go build -ldflags="-X 'main.version=`git rev-parse HEAD`'" -o bin/pi-app-deployer-server server/*
+	GOARCH=amd64 go build -ldflags="-X 'main.version=`git rev-parse HEAD`'" -o bin/pi-app-deployer-server server/*
 	GOOS=linux GOARCH=arm GOARM=5 go build -o bin/pi-app-deployer-agent agent/main.go
 
 test:
