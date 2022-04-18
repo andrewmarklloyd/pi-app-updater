@@ -1,6 +1,6 @@
 FROM alpine
 
-COPY bin/pi-sensor-server /app/
+COPY bin/pi-app-deployer-server /app/
 
 WORKDIR /app
 
