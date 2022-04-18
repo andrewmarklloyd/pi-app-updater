@@ -17,7 +17,7 @@ deploy() {
   heroku container:login
   heroku container:push web -a ${app}
   heroku container:release web -a ${app}
-  # health_check
+  health_check
 }
 
 get_version() {
