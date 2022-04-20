@@ -27,10 +27,11 @@ mv ${workDir}/pi-app-deployer-agent /usr/local/src/
     --manifestName pi-test-amd64 \
     --envVar MY_CONFIG=testing \
     --logForwarding \
-    --herokuApp pi-app-deployer-staging
+    --herokuApp ${DEPLOYER_APP}
 
+sed "s/{{.HerokuApp}}/${DEPLOYER_APP}/g" test/test-int-appconfigs.yaml > /tmp/test.yaml
 grep "MY_CONFIG\=testing" /usr/local/src/.pi-test-amd64.env >/dev/null
-diff test/test-int-appconfigs.yaml /usr/local/src/.pi-app-deployer.config.yaml
+diff /tmp/test.yaml /usr/local/src/.pi-app-deployer.config.yaml
 
 sleep 10
 journalctl -u pi-app-deployer-agent.service
@@ -45,20 +46,26 @@ git clone https://github.com/andrewmarklloyd/pi-test.git
 cd pi-test
 git remote set-url origin https://andrewmarklloyd:${GH_COMMIT_TOKEN}@github.com/andrewmarklloyd/pi-test.git
 deployerSHA=$(git rev-parse HEAD)
-echo "Test run: ${deployerSHA}"
-echo ${deployerSHA} >> test/integration-trigger.txt
+echo "Test run: ${deployerSHA};${DEPLOYER_APP}"
+echo "${deployerSHA};${DEPLOYER_APP}" >> test/integration-trigger.txt
 git add .
 git commit -m "Pi App Deployer Test Run ${deployerSHA}"
 sha=$(git rev-parse HEAD)
 git push origin main
 
 echo "Waiting for successful update of service"
+i=0
 found="false"
 while [[ ${found} == "false" ]]; do
+  if [[ ${i} -gt 10 ]]; then
+    echo "Exceeded max attempts, test failed"
+    exit 1
+  fi
   out=$(journalctl -u pi-test-amd64.service -n 100)
   if [[ ${out} == *"${sha}"* ]]; then
     found="true"
   fi
+  i=$((i+1))
   sleep 10
 done
 
