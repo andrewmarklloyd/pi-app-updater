@@ -45,7 +45,7 @@ git clone https://github.com/andrewmarklloyd/pi-test.git
 cd pi-test
 git remote set-url origin https://andrewmarklloyd:${GH_COMMIT_TOKEN}@github.com/andrewmarklloyd/pi-test.git
 deployerSHA=$(git rev-parse HEAD)
-echo "Test run: ${deployerSHA}"
+echo "Test run: ${deployerSHA};${DEPLOYER_HOST}"
 echo "${deployerSHA};${DEPLOYER_HOST}" >> test/integration-trigger.txt
 git add .
 git commit -m "Pi App Deployer Test Run ${deployerSHA}"
