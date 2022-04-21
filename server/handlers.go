@@ -54,7 +54,7 @@ func handleRepoPush(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "Error setting deploy status", http.StatusBadRequest)
 	}
 
-	fmt.Fprintf(w, `{"status":"success"}`)
+	fmt.Fprintf(w, `{"request":"success"}`)
 }
 
 func handleDeployStatus(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +101,7 @@ func handleDeployStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, c)
+	fmt.Fprintf(w, fmt.Sprintf(`{"request":"success","updateCondition":%s}`, c))
 }
 
 func handleServicePost(w http.ResponseWriter, r *http.Request) {
@@ -140,11 +140,11 @@ func handleServicePost(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "Error publishing event", http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w, fmt.Sprintf(`{"status":"success"}`))
+	fmt.Fprintf(w, fmt.Sprintf(`{"request":"success"}`))
 }
 
 func handleError(w http.ResponseWriter, err string, statusCode int) {
-	http.Error(w, fmt.Sprintf(`{"status":"error","error":"%s"}`, err), statusCode)
+	http.Error(w, fmt.Sprintf(`{"request":"error","error":"%s"}`, err), statusCode)
 }
 
 func handleHealthCheck(w http.ResponseWriter, r *http.Request) {
