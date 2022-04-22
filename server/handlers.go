@@ -92,7 +92,7 @@ func handleDeployStatus(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "Error getting deploy status", http.StatusBadRequest)
 		return
 	}
-
+	logger.Println(c)
 	var cond status.UpdateCondition
 	err = json.Unmarshal([]byte(c), &cond)
 	if err != nil {
