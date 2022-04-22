@@ -48,12 +48,6 @@ func handleRepoPush(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := fmt.Sprintf("%s/%s", a.RepoName, a.ManifestName)
-	err = redisClient.WriteCondition(r.Context(), key, config.StatusInProgress)
-	if err != nil {
-		handleError(w, "Error setting deploy status", http.StatusBadRequest)
-	}
-
 	fmt.Fprintf(w, `{"request":"success"}`)
 }
 
