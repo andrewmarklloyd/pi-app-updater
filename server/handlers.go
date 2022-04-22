@@ -49,7 +49,7 @@ func handleRepoPush(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uc := status.UpdateCondition{
-		Status:       config.StatusInProgress,
+		Status:       config.StatusUnknown,
 		RepoName:     a.RepoName,
 		ManifestName: a.ManifestName,
 	}
