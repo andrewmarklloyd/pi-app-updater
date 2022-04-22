@@ -74,7 +74,8 @@ while [[ ${found} == "false" ]]; do
   sleep 10
 done
 
-# verify deploy github action for pi-test was successful
+echo "Verifying deploy github action for pi-test was successful"
+sleep 5 # give time for action to complete
 runs=$(curl -s \
   -H "Accept: application/vnd.github.v3+json" \
   https://api.github.com/repos/andrewmarklloyd/pi-test/actions/runs)
