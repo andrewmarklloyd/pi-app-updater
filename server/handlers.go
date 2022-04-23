@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/andrewmarklloyd/pi-app-deployer/api/v1/status"
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/config"
 )
 
@@ -48,16 +47,18 @@ func handleRepoPush(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uc := status.UpdateCondition{
-		Status:       config.StatusUnknown,
-		RepoName:     a.RepoName,
-		ManifestName: a.ManifestName,
-	}
+	// uc := status.UpdateCondition{
+	// 	Status:       config.StatusUnknown,
+	// 	RepoName:     a.RepoName,
+	// 	ManifestName: a.ManifestName,
+	// 	Host:         "???",
+	// }
 
-	err = redisClient.WriteCondition(r.Context(), uc)
-	if err != nil {
-		handleError(w, "Error setting deploy status", http.StatusBadRequest)
-	}
+	// // TODO: what should the host be?
+	// err = redisClient.WriteCondition(r.Context(), uc)
+	// if err != nil {
+	// 	handleError(w, "Error setting deploy status", http.StatusBadRequest)
+	// }
 
 	fmt.Fprintf(w, `{"request":"success"}`)
 }
