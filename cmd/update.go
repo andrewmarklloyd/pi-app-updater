@@ -29,6 +29,11 @@ func init() {
 }
 
 func runUpdate(cmd *cobra.Command, args []string) {
+	host, err := os.Hostname()
+	if err != nil {
+		logger.Fatalln("error getting hostname:", err)
+	}
+
 	herokuAPIKey := os.Getenv("HEROKU_API_KEY")
 	if herokuAPIKey == "" {
 		logger.Fatalln("HEROKU_API_TOKEN environment variable is required")
@@ -86,6 +91,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 					RepoName:     cfg.RepoName,
 					ManifestName: cfg.ManifestName,
 					Status:       config.StatusInProgress,
+					Host:         host,
 				}
 
 				err = agent.publishUpdateCondition(updateCondition)

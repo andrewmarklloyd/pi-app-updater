@@ -85,7 +85,7 @@ func handleDeployStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := redisClient.ReadCondition(r.Context(), p.RepoName, p.ManifestName)
+	c, err := redisClient.ReadConditions(r.Context(), p.RepoName, p.ManifestName)
 
 	if err != nil {
 		logger.Println(fmt.Sprintf("Error getting deploy status from redis: %s. RepoName: %s, ManifestName: %s", err, p.RepoName, p.ManifestName))
@@ -97,15 +97,13 @@ func handleDeployStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cond status.UpdateCondition
-	err = json.Unmarshal([]byte(c), &cond)
+	j, err := json.Marshal(c)
 	if err != nil {
-		logger.Println(fmt.Sprintf("unmarshalling update condition from redis: %s", err))
-		handleError(w, "Error getting deploy status", http.StatusBadRequest)
+		handleError(w, "Error marshalling deploy status", http.StatusBadRequest)
 		return
 	}
 
-	fmt.Fprintf(w, fmt.Sprintf(`{"request":"success","updateCondition":%s}`, c))
+	fmt.Fprintf(w, fmt.Sprintf(`{"request":"success","updateCondition":%s}`, j))
 }
 
 func handleServicePost(w http.ResponseWriter, r *http.Request) {

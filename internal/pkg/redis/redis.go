@@ -30,17 +30,27 @@ func NewRedisClient(redisURL string) (Redis, error) {
 	return r, nil
 }
 
-func (r *Redis) ReadCondition(ctx context.Context, repoName, manifestName string) (string, error) {
-	val, err := r.client.Get(ctx, conditionKey(repoName, manifestName)).Result()
-	if err != nil {
-		return "", err
+func (r *Redis) ReadConditions(ctx context.Context, repoName, manifestName string) (map[string]status.UpdateCondition, error) {
+	state := make(map[string]status.UpdateCondition)
+	k := getReadKey(repoName, manifestName)
+	keys := r.client.Keys(ctx, fmt.Sprintf("%s*", k)).Val()
+	for _, k := range keys {
+		val, err := r.client.Get(ctx, k).Result()
+		if err != nil {
+			return state, err
+		}
+		var uc status.UpdateCondition
+		err = json.Unmarshal([]byte(val), &uc)
+		if err != nil {
+			return state, err
+		}
+		state[k] = uc
 	}
-
-	return val, nil
+	return state, nil
 }
 
 func (r *Redis) WriteCondition(ctx context.Context, uc status.UpdateCondition) error {
-	key := conditionKey(uc.RepoName, uc.ManifestName)
+	key := getWriteKey(uc.RepoName, uc.ManifestName, uc.Host)
 	value, err := json.Marshal(uc)
 	if err != nil {
 		return fmt.Errorf("marshalling json: %s", err)
@@ -66,7 +76,12 @@ func (r *Redis) ReadAll(ctx context.Context) (map[string]string, error) {
 	return state, nil
 }
 
-func conditionKey(repoName, manifestName string) string {
-	key := fmt.Sprintf("%s/%s", repoName, manifestName)
+func getWriteKey(repoName, manifestName, host string) string {
+	key := fmt.Sprintf("%s/%s/%s", repoName, manifestName, host)
+	return fmt.Sprintf("%s/%s", updateConditionStatusPrefix, key)
+}
+
+func getReadKey(repoName, manifestName string) string {
+	key := fmt.Sprintf("%s/%s/*", repoName, manifestName)
 	return fmt.Sprintf("%s/%s", updateConditionStatusPrefix, key)
 }
