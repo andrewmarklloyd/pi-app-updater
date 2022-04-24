@@ -34,22 +34,23 @@ func handleRepoPush(w http.ResponseWriter, r *http.Request) {
 
 	logger.Println(fmt.Sprintf("Received new artifact published event for repository %s", a.RepoName))
 
-	json, err := json.Marshal(a)
+	j, err := json.Marshal(a)
 	if err != nil {
 		logger.Println(err)
 		handleError(w, "error occurred marshalling json", http.StatusInternalServerError)
-		return
-	}
-	err = messageClient.Publish(config.RepoPushTopic, string(json))
-	if err != nil {
-		logger.Println(err)
-		handleError(w, "Error publishing event", http.StatusInternalServerError)
 		return
 	}
 
 	err = redisClient.DeleteConditions(r.Context(), a.RepoName, a.ManifestName)
 	if err != nil {
 		handleError(w, "Error clearing previous deploy status", http.StatusBadRequest)
+		return
+	}
+
+	err = messageClient.Publish(config.RepoPushTopic, string(j))
+	if err != nil {
+		logger.Println(err)
+		handleError(w, "Error publishing event", http.StatusInternalServerError)
 		return
 	}
 
