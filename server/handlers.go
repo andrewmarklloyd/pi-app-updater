@@ -47,18 +47,11 @@ func handleRepoPush(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// uc := status.UpdateCondition{
-	// 	Status:       config.StatusUnknown,
-	// 	RepoName:     a.RepoName,
-	// 	ManifestName: a.ManifestName,
-	// 	Host:         "???",
-	// }
-
-	// // TODO: what should the host be?
-	// err = redisClient.WriteCondition(r.Context(), uc)
-	// if err != nil {
-	// 	handleError(w, "Error setting deploy status", http.StatusBadRequest)
-	// }
+	err = redisClient.DeleteConditions(r.Context(), a.RepoName, a.ManifestName)
+	if err != nil {
+		handleError(w, "Error clearing previous deploy status", http.StatusBadRequest)
+		return
+	}
 
 	fmt.Fprintf(w, `{"request":"success"}`)
 }

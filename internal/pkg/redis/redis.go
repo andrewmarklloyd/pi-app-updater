@@ -49,6 +49,21 @@ func (r *Redis) ReadConditions(ctx context.Context, repoName, manifestName strin
 	return state, nil
 }
 
+func (r *Redis) DeleteConditions(ctx context.Context, repoName, manifestName string) error {
+	m, err := r.ReadConditions(ctx, repoName, manifestName)
+	if err != nil {
+		return err
+	}
+	for k := range m {
+		_, err := r.client.Del(ctx, k).Result()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (r *Redis) WriteCondition(ctx context.Context, uc status.UpdateCondition) error {
 	key := getWriteKey(uc.RepoName, uc.ManifestName, uc.Host)
 	value, err := json.Marshal(uc)
