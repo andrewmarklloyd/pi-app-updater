@@ -81,6 +81,7 @@ func main() {
 	})
 
 	messageClient.Subscribe(config.AgentInventoryTopic, func(message string) {
+		fmt.Println("got agent inventory message:", message)
 		p := config.AgentInventoryPayload{}
 		unmarshErr := json.Unmarshal([]byte(message), &p)
 		if unmarshErr != nil {
