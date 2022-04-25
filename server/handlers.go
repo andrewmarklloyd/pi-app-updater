@@ -92,6 +92,14 @@ func handleDeployStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// get list of agents expected to handle deploy based on repo/manifest. Need agents reporting health checks, stored in redis?
+	// filter failed hosts, send response
+	// for _, v := range m {
+	// 	if v.Status != "SUCCESS" {
+	// 		return false
+	// 	}
+	// }
+
 	j, err := json.Marshal(c)
 	if err != nil {
 		handleError(w, "Error marshalling deploy status", http.StatusBadRequest)

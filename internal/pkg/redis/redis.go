@@ -12,6 +12,7 @@ import (
 
 const (
 	updateConditionStatusPrefix = config.RepoPushStatusTopic
+	agentInventoryPrefix        = config.AgentInventoryTopic
 )
 
 type Redis struct {
@@ -78,6 +79,16 @@ func (r *Redis) WriteCondition(ctx context.Context, uc status.UpdateCondition) e
 	return nil
 }
 
+func (r *Redis) WriteAgentInventory(ctx context.Context, c config.AgentInventoryPayload) error {
+	key := getAgentInventoryWriteKey(c.RepoName, c.ManifestName, c.Host)
+	d := r.client.Set(ctx, key, c.Timestamp, 0)
+	err := d.Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *Redis) ReadAll(ctx context.Context) (map[string]string, error) {
 	state := make(map[string]string)
 	keys := r.client.Keys(ctx, fmt.Sprintf("%s/*", updateConditionStatusPrefix)).Val()
@@ -99,4 +110,9 @@ func getWriteKey(repoName, manifestName, host string) string {
 func getReadKey(repoName, manifestName string) string {
 	key := fmt.Sprintf("%s/%s/*", repoName, manifestName)
 	return fmt.Sprintf("%s/%s", updateConditionStatusPrefix, key)
+}
+
+func getAgentInventoryWriteKey(repoName, manifestName, host string) string {
+	key := fmt.Sprintf("%s/%s/%s", repoName, manifestName, host)
+	return fmt.Sprintf("%s/%s", agentInventoryPrefix, key)
 }
