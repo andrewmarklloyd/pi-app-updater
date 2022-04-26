@@ -254,6 +254,7 @@ func (a *Agent) publishUpdateCondition(c status.UpdateCondition) error {
 
 func (a *Agent) publishAgentInventory(m map[string]config.Config, host string, timestamp int64) error {
 	for _, v := range m {
+		fmt.Println("inside for loop:", v)
 		p := config.AgentInventoryPayload{
 			RepoName:     v.RepoName,
 			ManifestName: v.ManifestName,

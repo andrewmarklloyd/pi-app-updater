@@ -38,7 +38,7 @@ sed "s/{{.HerokuApp}}/${DEPLOYER_APP}/g" test/test-int-appconfigs.yaml > /tmp/te
 grep "MY_CONFIG\=testing" /usr/local/src/.pi-test-amd64.env >/dev/null
 diff /tmp/test.yaml /usr/local/src/.pi-app-deployer.config.yaml
 
-sleep 10
+sleep 30
 journalctl -u pi-app-deployer-agent.service
 journalctl -u pi-test-amd64.service
 systemctl is-active pi-app-deployer-agent.service
