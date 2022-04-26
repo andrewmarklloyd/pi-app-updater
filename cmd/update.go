@@ -64,11 +64,9 @@ func runUpdate(cmd *cobra.Command, args []string) {
 		logger.Fatalln("connecting to mqtt: ", err)
 	}
 
-	fmt.Println("** app configs:", deployerConfig.AppConfigs)
 	inventoryTicker := time.NewTicker(5 * time.Second)
 	go func() {
 		for t := range inventoryTicker.C {
-			fmt.Println("running publish agent inventory")
 			err := agent.publishAgentInventory(deployerConfig.AppConfigs, host, t.Unix())
 			if err != nil {
 				logger.Println("error publishing agent inventory:", err)

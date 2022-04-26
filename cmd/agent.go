@@ -254,7 +254,6 @@ func (a *Agent) publishUpdateCondition(c status.UpdateCondition) error {
 
 func (a *Agent) publishAgentInventory(m map[string]config.Config, host string, timestamp int64) error {
 	for _, v := range m {
-		fmt.Println("inside for loop:", v)
 		p := config.AgentInventoryPayload{
 			RepoName:     v.RepoName,
 			ManifestName: v.ManifestName,
@@ -269,10 +268,8 @@ func (a *Agent) publishAgentInventory(m map[string]config.Config, host string, t
 
 		err = a.MqttClient.Publish(config.AgentInventoryTopic, string(j))
 		if err != nil {
-			fmt.Println("^^^^", err)
 			return fmt.Errorf("publishing agent inventory message: %s", err)
 		}
-		fmt.Println("&&& end of publish agent inventory, no error??")
 	}
 	return nil
 }
