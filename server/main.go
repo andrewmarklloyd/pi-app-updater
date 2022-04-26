@@ -85,6 +85,7 @@ func main() {
 		unmarshErr := json.Unmarshal([]byte(message), &p)
 		if unmarshErr != nil {
 			logger.Println("unmarshalling agent inventory payload:", unmarshErr)
+			return
 		}
 		err = redisClient.WriteAgentInventory(context.Background(), p)
 		if err != nil {
