@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/andrewmarklloyd/pi-app-deployer/api/v1/status"
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/config"
@@ -35,7 +38,9 @@ func (r *Redis) ReadConditions(ctx context.Context, repoName, manifestName strin
 	state := make(map[string]status.UpdateCondition)
 	k := getReadKey(repoName, manifestName)
 	keys := r.client.Keys(ctx, fmt.Sprintf("%s*", k)).Val()
+	p := strings.ReplaceAll(k, "*", "")
 	for _, k := range keys {
+		host := strings.ReplaceAll(k, p, "")
 		val, err := r.client.Get(ctx, k).Result()
 		if err != nil {
 			return state, err
@@ -45,7 +50,7 @@ func (r *Redis) ReadConditions(ctx context.Context, repoName, manifestName strin
 		if err != nil {
 			return state, err
 		}
-		state[k] = uc
+		state[host] = uc
 	}
 	return state, nil
 }
@@ -89,6 +94,27 @@ func (r *Redis) WriteAgentInventory(ctx context.Context, c config.AgentInventory
 	return nil
 }
 
+func (r *Redis) ReadAgentInventory(ctx context.Context, repoName, manifestName string) (map[string]time.Time, error) {
+	agents := make(map[string]time.Time, 0)
+	readKey := getAgentInventoryReadKey(repoName, manifestName)
+	keys := r.client.Keys(ctx, readKey).Val()
+	p := strings.ReplaceAll(readKey, "*", "")
+	for _, k := range keys {
+		host := strings.ReplaceAll(k, p, "")
+		val, err := r.client.Get(ctx, k).Result()
+		if err != nil {
+			return agents, err
+		}
+		n, err := strconv.ParseInt(val, 10, 64)
+		if err != nil {
+			return agents, err
+		}
+		agents[host] = time.Unix(n, 0)
+	}
+
+	return agents, nil
+}
+
 func (r *Redis) ReadAll(ctx context.Context) (map[string]string, error) {
 	state := make(map[string]string)
 	keys := r.client.Keys(ctx, fmt.Sprintf("%s/*", updateConditionStatusPrefix)).Val()
@@ -114,5 +140,10 @@ func getReadKey(repoName, manifestName string) string {
 
 func getAgentInventoryWriteKey(repoName, manifestName, host string) string {
 	key := fmt.Sprintf("%s/%s/%s", repoName, manifestName, host)
+	return fmt.Sprintf("%s/%s", agentInventoryPrefix, key)
+}
+
+func getAgentInventoryReadKey(repoName, manifestName string) string {
+	key := fmt.Sprintf("%s/%s/*", repoName, manifestName)
 	return fmt.Sprintf("%s/%s", agentInventoryPrefix, key)
 }

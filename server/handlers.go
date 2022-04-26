@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
+	"github.com/andrewmarklloyd/pi-app-deployer/api/v1/status"
 	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/config"
 )
 
@@ -80,7 +82,7 @@ func handleDeployStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := redisClient.ReadConditions(r.Context(), p.RepoName, p.ManifestName)
+	conditions, err := redisClient.ReadConditions(r.Context(), p.RepoName, p.ManifestName)
 
 	if err != nil {
 		logger.Println(fmt.Sprintf("Error getting deploy status from redis: %s. RepoName: %s, ManifestName: %s", err, p.RepoName, p.ManifestName))
@@ -92,21 +94,57 @@ func handleDeployStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get list of agents expected to handle deploy based on repo/manifest. Need agents reporting health checks, stored in redis?
-	// filter failed hosts, send response
-	// for _, v := range m {
-	// 	if v.Status != "SUCCESS" {
-	// 		return false
-	// 	}
-	// }
-
-	j, err := json.Marshal(c)
+	agents, err := redisClient.ReadAgentInventory(r.Context(), p.RepoName, p.ManifestName)
 	if err != nil {
-		handleError(w, "Error marshalling deploy status", http.StatusBadRequest)
+		handleError(w, "error listing agents configured to update app", http.StatusBadRequest)
 		return
 	}
 
-	fmt.Fprintf(w, fmt.Sprintf(`{"request":"success","updateCondition":%s}`, j))
+	successfulHosts := map[string]status.UpdateCondition{}
+	unsuccessfulHosts := map[string]status.UpdateCondition{}
+	now := time.Now()
+	for host, timestamp := range agents {
+		cond, ok := conditions[host]
+		if !ok {
+			unsuccessfulHosts[host] = status.UpdateCondition{
+				Host:   host,
+				Status: config.StatusUnknown,
+				Error:  "agent not reporting health check for app",
+			}
+			continue
+		}
+
+		diff := now.Sub(timestamp)
+		if diff.Minutes() > 5 {
+			unsuccessfulHosts[host] = status.UpdateCondition{
+				Host:   host,
+				Status: config.StatusUnknown,
+				Error:  "agent health check for app greater than 5 minutes and considered stale",
+			}
+			continue
+		}
+
+		if cond.Status != config.StatusSuccess {
+			unsuccessfulHosts[host] = cond
+			continue
+		}
+
+		successfulHosts[host] = cond
+	}
+
+	successJson, err := json.Marshal(successfulHosts)
+	if err != nil {
+		handleError(w, "Error marshalling successful hosts", http.StatusBadRequest)
+		return
+	}
+
+	unsuccessJson, err := json.Marshal(unsuccessfulHosts)
+	if err != nil {
+		handleError(w, "Error marshalling unsuccessful hosts", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprintf(w, fmt.Sprintf(`{"request":"success","successfulHosts":%s,"unsuccessfulHosts":%s}`, successJson, unsuccessJson))
 }
 
 func handleServicePost(w http.ResponseWriter, r *http.Request) {

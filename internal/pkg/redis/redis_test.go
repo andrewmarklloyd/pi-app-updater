@@ -15,4 +15,7 @@ func Test_Keys(t *testing.T) {
 
 	key = getReadKey("my-repo", "my-manifest")
 	assert.Equal(t, "repo/push/status/my-repo/my-manifest/*", key)
+
+	key = getAgentInventoryReadKey("my-repo", "my-manifest")
+	assert.Equal(t, "agent/inventory/my-repo/my-manifest/*", key)
 }
