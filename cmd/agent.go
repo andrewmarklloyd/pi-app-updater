@@ -271,6 +271,7 @@ func (a *Agent) publishAgentInventory(m map[string]config.Config, host string, t
 		if err != nil {
 			return fmt.Errorf("publishing agent inventory message: %s", err)
 		}
+		fmt.Println("&&& end of publish agent inventory, no error??")
 	}
 	return nil
 }
