@@ -31,11 +31,11 @@ if ! command -v redis-cli &> /dev/null; then
 
   echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
 
-  apt-get install redis -y
+  apt-get install redis -y >/dev/null
 fi
 
 export REDIS_URL=$(heroku config:get REDIS_URL -a ${DEPLOYER_APP})
-redis-cli -u ${REDIS_URL} --scan --pattern "*andrewmarklloyd/pi-test*" | xargs redis-cli -u ${REDIS_URL} del
+redis-cli -u ${REDIS_URL} --scan --pattern "*andrewmarklloyd/pi-test*" | xargs --no-run-if-empty redis-cli -u ${REDIS_URL} del
 
 rm -f ${envFile}
 cat <<< "HEROKU_API_KEY=${HEROKU_API_KEY}" > ${envFile}
