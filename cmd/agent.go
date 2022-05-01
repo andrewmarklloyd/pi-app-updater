@@ -219,6 +219,17 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact, cfg config.Config) 
 	return nil
 }
 
+func unInstall(repoName, manifestName string) error {
+	return nil
+}
+
+func unInstallAll() error {
+	// stop systemd units
+	// remove system files
+	// remove all files in /usr/local/src/pi-app-deployer except for this binary....we need our own directory in case there are other files in there
+	return nil
+}
+
 // TODO: is there a better way to capture closures without so much nesting?
 func (a *Agent) startLogForwarder(deplerConfig config.DeployerConfig, host string, f func(config.Log)) {
 	for _, cfg := range deplerConfig.AppConfigs {

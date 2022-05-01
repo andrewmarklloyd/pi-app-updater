@@ -46,10 +46,22 @@ func runUninstall(cmd *cobra.Command, args []string) {
 
 	if all {
 		logger.Println("Uninstalling all apps")
+		err := unInstallAll()
+		if err != nil {
+			logger.Fatalln("Error uninstalling all apps:", err)
+		}
+		logger.Println("Successfully uninstalled all apps")
 		os.Exit(0)
 	}
 
 	if repoName == "" || manifestName == "" {
-		logger.Fatalln("repoName and manifestName cannot be empty")
+		logger.Fatalln("repoName and manifestName cannot be empty if not using the --all flag")
 	}
+
+	logger.Println(fmt.Sprintf("Uninstalling %s/%s", repoName, manifestName))
+	err = unInstall(repoName, manifestName)
+	if err != nil {
+		logger.Fatalln(fmt.Sprintf("Error uninstalling %s/%s: %s", repoName, manifestName, err))
+	}
+	logger.Println(fmt.Sprintf("Successfully uninstalled %s/%s", repoName, manifestName))
 }
