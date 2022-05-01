@@ -233,6 +233,23 @@ func unInstall(c map[string]config.Config, repoName, manifestName string) error 
 				return fmt.Errorf("removing systemd unit file %s: %s", svcFile, err)
 			}
 		}
+
+		toDelete := []string{
+			fmt.Sprintf("/usr/local/src/pi-app-deployer/%s", v.ManifestName),
+			fmt.Sprintf("/usr/local/src/pi-app-deployer/.%s.env", v.ManifestName),
+			fmt.Sprintf("/usr/local/src/pi-app-deployer/run-%s.sh", v.ManifestName),
+		}
+		for _, f := range toDelete {
+			err := os.Remove(f)
+			if err != nil {
+				return fmt.Errorf("removing file %s: %s", f, err)
+			}
+		}
+	}
+
+	err := file.RestartSystemdUnit("pi-app-deployer")
+	if err != nil {
+		return fmt.Errorf("restarting pi-app-deployer systemd unit: %s", err)
 	}
 	return nil
 }
