@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-deployerDir="/usr/local/src"
+deployerDir="/usr/local/src/pi-app-deployer"
 
 osRelease=$(cat /etc/os-release)
 if [[ "${osRelease}" == *"Raspbian"* ]]; then

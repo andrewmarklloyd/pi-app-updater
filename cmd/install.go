@@ -45,12 +45,15 @@ func runInstall(cmd *cobra.Command, args []string) {
 
 	herokuApp, err := cmd.Flags().GetString("herokuApp")
 	if err != nil {
-		fmt.Println("error getting herokuApp flag", err)
-		os.Exit(1)
+		logger.Fatalln("error getting herokuApp flag", err)
 	}
 	if herokuApp == "" {
-		fmt.Println("herokuApp flag is required")
-		os.Exit(1)
+		logger.Fatalln("herokuApp flag is required")
+	}
+
+	err = os.Mkdir(config.PiAppDeployerDir, 0755)
+	if err != nil {
+		logger.Fatalln(fmt.Sprintf("creating pi app deployer directory %s: %s", config.PiAppDeployerDir, err))
 	}
 
 	agent, err := newAgent(herokuAPIKey, herokuApp)
@@ -87,22 +90,18 @@ func runInstall(cmd *cobra.Command, args []string) {
 func getConfig(cmd *cobra.Command) config.Config {
 	repoName, err := cmd.Flags().GetString("repoName")
 	if err != nil {
-		fmt.Println("error getting repoName flag", err)
-		os.Exit(1)
+		logger.Fatalln("error getting repoName flag", err)
 	}
 	if repoName == "" {
-		fmt.Println("repoName flag is required")
-		os.Exit(1)
+		logger.Fatalln("repoName flag is required")
 	}
 
 	manifestName, err := cmd.Flags().GetString("manifestName")
 	if err != nil {
-		fmt.Println("error getting manifestName flag", err)
-		os.Exit(1)
+		logger.Fatalln("error getting manifestName flag", err)
 	}
 	if manifestName == "" {
-		fmt.Println("manifestName flag is required")
-		os.Exit(1)
+		logger.Fatalln("manifestName flag is required")
 	}
 
 	appUser, err := cmd.Flags().GetString("appUser")

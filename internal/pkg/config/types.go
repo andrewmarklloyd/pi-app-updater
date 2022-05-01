@@ -10,7 +10,7 @@ import (
 // todo: standardize repoName vs repository. also reuse some structs?
 
 const (
-	PiAppDeployerDir = "/usr/local/src"
+	PiAppDeployerDir = "/usr/local/src/pi-app-deployer"
 
 	RepoPushTopic       = "repo/push"
 	LogForwarderTopic   = "logs"

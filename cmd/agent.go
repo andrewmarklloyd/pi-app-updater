@@ -224,15 +224,29 @@ func unInstall(repoName, manifestName string) error {
 }
 
 func unInstallAll(c map[string]config.Config) error {
-	for k, v := range c {
-		fmt.Println(k, v.RepoName, v.ManifestName)
+	for _, v := range c {
 		err := file.StopSystemdUnit(v.ManifestName)
 		if err != nil {
-			return err
+			return fmt.Errorf("stopping systemd unit %s: %s", v.ManifestName, err)
+		}
+
+		svcFile := fmt.Sprintf("/etc/systemd/system/%s.service", v.ManifestName)
+		err = os.Remove(svcFile)
+		if err != nil {
+			return fmt.Errorf("removing systemd unit file %s: %s", svcFile, err)
 		}
 	}
-	// remove system files
-	// remove all files in /usr/local/src/pi-app-deployer except for this binary....we need our own directory in case there are other files in there
+
+	err := file.StopSystemdUnit("pi-app-deployer")
+	if err != nil {
+		return fmt.Errorf("stopping pi-app-deployer systemd unit: %s", err)
+	}
+
+	err = os.RemoveAll(config.PiAppDeployerDir)
+	if err != nil {
+		return fmt.Errorf("removing all pi-app-deployer files: %s", err)
+	}
+
 	return nil
 }
 
