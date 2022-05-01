@@ -51,11 +51,6 @@ func runInstall(cmd *cobra.Command, args []string) {
 		logger.Fatalln("herokuApp flag is required")
 	}
 
-	err = os.Mkdir(config.PiAppDeployerDir, 0755)
-	if err != nil {
-		logger.Fatalln(fmt.Sprintf("creating pi app deployer directory %s: %s", config.PiAppDeployerDir, err))
-	}
-
 	agent, err := newAgent(herokuAPIKey, herokuApp)
 	if err != nil {
 		logger.Fatalln(fmt.Errorf("error creating agent: %s", err))
