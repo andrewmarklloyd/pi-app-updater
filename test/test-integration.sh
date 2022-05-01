@@ -2,8 +2,6 @@
 
 set -euo pipefail
 
-# TODO: move this to install script?
-
 workDir="/home/runner/work/pi-app-deployer/pi-app-deployer"
 deployerDir="/usr/local/src/pi-app-deployer"
 
@@ -47,8 +45,8 @@ ${deployerDir}/pi-app-deployer-agent install \
     --herokuApp ${DEPLOYER_APP}
 
 sed "s/{{.HerokuApp}}/${DEPLOYER_APP}/g" test/test-int-appconfigs.yaml > /tmp/test.yaml
-grep "MY_CONFIG\=testing" /usr/local/src/.pi-test-amd64.env >/dev/null
-diff /tmp/test.yaml /usr/local/src/.pi-app-deployer.config.yaml
+grep "MY_CONFIG\=testing" ${deployerDir}/.pi-test-amd64.env >/dev/null
+diff /tmp/test.yaml ${deployerDir}/.pi-app-deployer.config.yaml
 
 sleep 10
 journalctl -u pi-app-deployer-agent.service
@@ -99,7 +97,7 @@ if [[ ${conclusion} != 'success' ]]; then
     exit 1
 fi
 
-/usr/local/src/pi-app-deployer-agent uninstall \
+${deployerDir}/pi-app-deployer-agent uninstall \
     --all \
     --herokuApp ${DEPLOYER_APP}
 
