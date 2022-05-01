@@ -223,8 +223,14 @@ func unInstall(repoName, manifestName string) error {
 	return nil
 }
 
-func unInstallAll() error {
-	// stop systemd units
+func unInstallAll(c map[string]config.Config) error {
+	for k, v := range c {
+		fmt.Println(k, v.RepoName, v.ManifestName)
+		err := file.StopSystemdUnit(v.ManifestName)
+		if err != nil {
+			return err
+		}
+	}
 	// remove system files
 	// remove all files in /usr/local/src/pi-app-deployer except for this binary....we need our own directory in case there are other files in there
 	return nil

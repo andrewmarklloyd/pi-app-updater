@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/andrewmarklloyd/pi-app-deployer/internal/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -44,9 +45,20 @@ func runUninstall(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
+	herokuApp, err := cmd.Flags().GetString("herokuApp")
+	if err != nil {
+		fmt.Println("error getting herokuApp flag", err)
+		os.Exit(1)
+	}
+
+	deployerConfig, err := config.NewDeployerConfig(config.DeployerConfigFile, herokuApp)
+	if err != nil {
+		logger.Fatalln("error getting deployer config:", err)
+	}
+
 	if all {
 		logger.Println("Uninstalling all apps")
-		err := unInstallAll()
+		err := unInstallAll(deployerConfig.AppConfigs)
 		if err != nil {
 			logger.Fatalln("Error uninstalling all apps:", err)
 		}
