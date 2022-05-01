@@ -219,7 +219,21 @@ func (a *Agent) installOrUpdateApp(artifact config.Artifact, cfg config.Config) 
 	return nil
 }
 
-func unInstall(repoName, manifestName string) error {
+func unInstall(c map[string]config.Config, repoName, manifestName string) error {
+	for _, v := range c {
+		if v.RepoName == repoName && v.ManifestName == manifestName {
+			err := file.StopSystemdUnit(v.ManifestName)
+			if err != nil {
+				return fmt.Errorf("stopping systemd unit %s: %s", v.ManifestName, err)
+			}
+
+			svcFile := fmt.Sprintf("/etc/systemd/system/%s.service", v.ManifestName)
+			err = os.Remove(svcFile)
+			if err != nil {
+				return fmt.Errorf("removing systemd unit file %s: %s", svcFile, err)
+			}
+		}
+	}
 	return nil
 }
 

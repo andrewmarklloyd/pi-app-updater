@@ -4,6 +4,7 @@ set -euo pipefail
 
 workDir="/home/runner/work/pi-app-deployer/pi-app-deployer"
 deployerDir="/usr/local/src/pi-app-deployer"
+mkdir -p ${deployerDir}
 
 if [[ $(whoami) != "root" ]]; then
   echo "Script must be run as root"

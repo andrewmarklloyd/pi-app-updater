@@ -71,7 +71,7 @@ func runUninstall(cmd *cobra.Command, args []string) {
 	}
 
 	logger.Println(fmt.Sprintf("Uninstalling %s/%s", repoName, manifestName))
-	err = unInstall(repoName, manifestName)
+	err = unInstall(deployerConfig.AppConfigs, repoName, manifestName)
 	if err != nil {
 		logger.Fatalln(fmt.Sprintf("Error uninstalling %s/%s: %s", repoName, manifestName, err))
 	}
