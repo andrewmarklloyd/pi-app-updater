@@ -98,4 +98,9 @@ if [[ ${conclusion} != 'success' ]]; then
     exit 1
 fi
 
+/usr/local/src/pi-app-deployer-agent uninstall \
+    --all \
+    --herokuApp ${DEPLOYER_APP}
+
+
 echo "Successfully ran integration tests! Now update this to use Go testing :)"

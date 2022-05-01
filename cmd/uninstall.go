@@ -29,26 +29,26 @@ func init() {
 func runUninstall(cmd *cobra.Command, args []string) {
 	all, err := cmd.Flags().GetBool("all")
 	if err != nil {
-		fmt.Println("error getting all flag", err)
-		os.Exit(1)
+		logger.Fatalln("error getting all flag", err)
 	}
 
 	repoName, err := cmd.Flags().GetString("repoName")
 	if err != nil {
-		fmt.Println("error getting repoName flag", err)
-		os.Exit(1)
+		logger.Fatalln("error getting repoName flag", err)
 	}
 
 	manifestName, err := cmd.Flags().GetString("manifestName")
 	if err != nil {
-		fmt.Println("error getting manifestName flag", err)
-		os.Exit(1)
+		logger.Fatalln("error getting manifestName flag", err)
 	}
 
 	herokuApp, err := cmd.Flags().GetString("herokuApp")
 	if err != nil {
-		fmt.Println("error getting herokuApp flag", err)
-		os.Exit(1)
+		logger.Fatalln("error getting herokuApp flag", err)
+	}
+
+	if herokuApp == "" {
+		logger.Fatalln("repoName and manifestName cannot be empty if not using the --all flag")
 	}
 
 	deployerConfig, err := config.NewDeployerConfig(config.DeployerConfigFile, herokuApp)
