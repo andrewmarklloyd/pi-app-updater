@@ -69,6 +69,8 @@ git commit -m "Pi App Deployer Test Run ${deployerSHA}"
 sha=$(git rev-parse HEAD)
 git push origin main
 
+ls -al ${deployerDir}
+
 echo "Waiting for successful update of service"
 i=0
 found="false"
@@ -99,8 +101,6 @@ if [[ ${conclusion} != 'success' ]]; then
     echo "Expected pi-test Main Deploy workflow run to be success, but got: ${conclusion}"
     exit 1
 fi
-
-ls -al ${deployerDir}
 
 ${deployerDir}/pi-app-deployer-agent uninstall \
     --repoName andrewmarklloyd/pi-test \
