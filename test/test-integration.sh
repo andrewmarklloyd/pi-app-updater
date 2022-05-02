@@ -100,6 +100,8 @@ if [[ ${conclusion} != 'success' ]]; then
     exit 1
 fi
 
+ls -al ${deployerDir}
+
 ${deployerDir}/pi-app-deployer-agent uninstall \
     --repoName andrewmarklloyd/pi-test \
     --manifestName pi-test-amd64 \
