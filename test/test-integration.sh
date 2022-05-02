@@ -76,6 +76,7 @@ while [[ ${found} == "false" ]]; do
   if [[ ${i} -gt 10 ]]; then
     echo "Exceeded max attempts, test failed"
     echo "Logs from service: ${out}"
+    cat /etc/systemd/system/pi-test-amd64.service
     exit 1
   fi
   out=$(journalctl -u pi-test-amd64.service -n 100)
