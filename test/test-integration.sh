@@ -99,8 +99,10 @@ if [[ ${conclusion} != 'success' ]]; then
 fi
 
 ${deployerDir}/pi-app-deployer-agent uninstall \
-    --all \
+    --repoName andrewmarklloyd/pi-test \
+    --manifestName pi-test-amd64 \
     --herokuApp ${DEPLOYER_APP}
 
+ls -al ${deployerDir}
 
 echo "Successfully ran integration tests! Now update this to use Go testing :)"

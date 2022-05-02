@@ -48,7 +48,7 @@ func runUninstall(cmd *cobra.Command, args []string) {
 	}
 
 	if herokuApp == "" {
-		logger.Fatalln("repoName and manifestName cannot be empty if not using the --all flag")
+		logger.Fatalln("herokuApp flag cannot be empty")
 	}
 
 	deployerConfig, err := config.NewDeployerConfig(config.DeployerConfigFile, herokuApp)
