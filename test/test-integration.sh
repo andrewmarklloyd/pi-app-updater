@@ -105,4 +105,9 @@ ${deployerDir}/pi-app-deployer-agent uninstall \
 
 ls -al ${deployerDir}
 
+sleep 5
+journalctl -u pi-app-deployer-agent.service
+systemctl is-active pi-app-deployer-agent.service
+systemctl is-active pi-test-amd64.service
+
 echo "Successfully ran integration tests! Now update this to use Go testing :)"
