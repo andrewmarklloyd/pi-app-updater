@@ -249,9 +249,12 @@ func unInstall(c map[string]config.Config, repoName, manifestName string) error 
 		}
 	}
 
-	// daemonreload first
+	err := file.DaemonReload()
+	if err != nil {
+		return fmt.Errorf("running daemon-reload: %s", err)
+	}
 
-	err := file.RestartSystemdUnit("pi-app-deployer")
+	err = file.RestartSystemdUnit("pi-app-deployer")
 	if err != nil {
 		return fmt.Errorf("restarting pi-app-deployer systemd unit: %s", err)
 	}
