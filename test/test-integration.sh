@@ -50,7 +50,7 @@ grep "MY_CONFIG\=testing" ${deployerDir}/.pi-test-amd64.env >/dev/null
 diff /tmp/test.yaml ${deployerDir}/.pi-app-deployer.config.yaml
 
 sleep 10
-journalctl -u pi-app-deployer-agent.service
+journalctl -u pi-app-deployer-agent.service &
 journalctl -u pi-test-amd64.service
 systemctl is-active pi-app-deployer-agent.service
 systemctl is-active pi-test-amd64.service
