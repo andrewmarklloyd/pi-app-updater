@@ -67,17 +67,20 @@ func runInstall(cmd *cobra.Command, args []string) {
 	}
 
 	logger.Println("Installing application")
-	deployerConfig.SetAppConfig(cfg)
-	deployerConfig.WriteDeployerConfig()
+	// deployerConfig.SetAppConfig(cfg)
+	// deployerConfig.WriteDeployerConfig()
 
 	a := config.Artifact{
 		RepoName:     cfg.RepoName,
 		ManifestName: cfg.ManifestName,
 	}
-	err = agent.handleInstall(a, cfg)
+	cfg, err = agent.handleInstall(a, cfg)
 	if err != nil {
 		logger.Fatalln(fmt.Errorf("failed installation: %s", err))
 	}
+
+	deployerConfig.SetAppConfig(cfg)
+	deployerConfig.WriteDeployerConfig()
 
 	logger.Println("Successfully installed app")
 }

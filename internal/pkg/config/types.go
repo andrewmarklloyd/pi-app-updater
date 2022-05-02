@@ -53,6 +53,7 @@ type Config struct {
 	AppUser       string            `yaml:"appUser"`
 	LogForwarding bool              `yaml:"logForwarding"`
 	EnvVars       map[string]string `yaml:"envVars"`
+	Executable    string            `yaml:"executable"`
 }
 
 type DeployStatusPayload struct {
