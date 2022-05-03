@@ -67,7 +67,8 @@ func runInstall(cmd *cobra.Command, args []string) {
 	}
 
 	logger.Println("Installing application")
-	// TODO: why does this need to be run before the install?
+	// writing deployer config here is required since the install
+	// starts the pi-app-deployer-agent systemd unit
 	deployerConfig.SetAppConfig(cfg)
 	deployerConfig.WriteDeployerConfig()
 
@@ -80,6 +81,9 @@ func runInstall(cmd *cobra.Command, args []string) {
 		logger.Fatalln(fmt.Errorf("failed installation: %s", err))
 	}
 
+	// writing deployer config here is required to
+	// get executable field written which is only found
+	// during the install via the manifest
 	deployerConfig.SetAppConfig(cfg)
 	deployerConfig.WriteDeployerConfig()
 
