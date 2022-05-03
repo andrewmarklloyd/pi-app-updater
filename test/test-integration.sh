@@ -111,5 +111,6 @@ sleep 5
 journalctl -u pi-app-deployer-agent.service
 systemctl is-active pi-app-deployer-agent.service
 e=$(systemctl list-units -all | grep pi-test-amd64.service >/dev/null)
+echo $e
 
 echo "Successfully ran integration tests! Now update this to use Go testing :)"
