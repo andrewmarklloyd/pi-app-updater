@@ -67,8 +67,8 @@ func runInstall(cmd *cobra.Command, args []string) {
 	}
 
 	logger.Println("Installing application")
-	// deployerConfig.SetAppConfig(cfg)
-	// deployerConfig.WriteDeployerConfig()
+	deployerConfig.SetAppConfig(cfg)
+	deployerConfig.WriteDeployerConfig()
 
 	a := config.Artifact{
 		RepoName:     cfg.RepoName,
