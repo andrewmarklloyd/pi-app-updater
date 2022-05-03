@@ -105,12 +105,13 @@ ${deployerDir}/pi-app-deployer-agent uninstall \
     --manifestName pi-test-amd64 \
     --herokuApp ${DEPLOYER_APP}
 
-ls -al ${deployerDir}
-
 sleep 5
 journalctl -u pi-app-deployer-agent.service
 systemctl is-active pi-app-deployer-agent.service
-e=$(systemctl list-units -all | grep pi-test-amd64.service >/dev/null)
-echo $e
+out=$(systemctl list-units -all | grep pi-test-amd64.service >/dev/null)
+if [[ ! -z ${out} ]]; then
+  echo "Expected pi-test-amd64 systemd unit to NOT exist but was found: ${out}"
+  exit 1
+fi
 
 echo "Successfully ran integration tests! Now update this to use Go testing :)"
