@@ -237,9 +237,9 @@ func unInstall(c map[string]config.Config, repoName, manifestName string) error 
 		}
 
 		toDelete := []string{
-			fmt.Sprintf("%s/%s", config.DeployerConfigFile, v.Executable),
-			fmt.Sprintf("%s/.%s.env", config.DeployerConfigFile, v.ManifestName),
-			fmt.Sprintf("%s/run-%s.sh", config.DeployerConfigFile, v.ManifestName),
+			fmt.Sprintf("%s/%s", config.PiAppDeployerDir, v.Executable),
+			fmt.Sprintf("%s/.%s.env", config.PiAppDeployerDir, v.ManifestName),
+			fmt.Sprintf("%s/run-%s.sh", config.PiAppDeployerDir, v.ManifestName),
 		}
 		for _, f := range toDelete {
 			err := os.Remove(f)

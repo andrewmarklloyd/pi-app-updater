@@ -67,6 +67,7 @@ func runInstall(cmd *cobra.Command, args []string) {
 	}
 
 	logger.Println("Installing application")
+	// TODO: why does this need to be run before the install?
 	deployerConfig.SetAppConfig(cfg)
 	deployerConfig.WriteDeployerConfig()
 
