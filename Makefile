@@ -1,8 +1,14 @@
 .PHONY: build test
 
+GIT_REV=`git rev-parse --short HEAD`
+GIT_TREE_STATE=$(shell (git status --porcelain | grep -q .) && echo $(GIT_REV)-dirty || echo $(GIT_REV))
+
 build:
-	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags="-X 'main.version=`git rev-parse HEAD`'" -o bin/pi-app-deployer-server server/*
-	GOOS=linux GOARCH=arm GOARM=5 go build -o bin/pi-app-deployer-agent agent/main.go
+	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags="-X 'main.version=`git rev-parse --short HEAD`'" -o bin/pi-app-deployer-server server/*
+	GOOS=linux GOARCH=arm GOARM=5 go build -ldflags="-X 'github.com/andrewmarklloyd/pi-app-deployer/cmd.version=`git rev-parse --short HEAD`'" -o bin/pi-app-deployer-agent agent/main.go
+
+testing:
+	@echo $(GIT_TREE_STATE)
 
 test:
 	go test -v ./...
