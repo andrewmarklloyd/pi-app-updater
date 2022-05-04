@@ -7,9 +7,6 @@ build:
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags="-X 'main.version=$(GIT_TREE_STATE)'" -o bin/pi-app-deployer-server server/*
 	GOOS=linux GOARCH=arm GOARM=5 go build -ldflags="-X 'github.com/andrewmarklloyd/pi-app-deployer/cmd.version=$(GIT_TREE_STATE)'" -o bin/pi-app-deployer-agent agent/main.go
 
-testing:
-	@echo $(GIT_TREE_STATE)
-
 test:
 	go test -v ./...
 
