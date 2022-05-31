@@ -88,6 +88,7 @@ func main() {
 			logger.Println("unmarshalling agent inventory payload:", unmarshErr)
 			return
 		}
+		logger.Println("got agent inventory ping:", p)
 		err = redisClient.WriteAgentInventory(context.Background(), p)
 		if err != nil {
 			logger.Println(fmt.Sprintf("writing agent inventory to redis: %s", err))
