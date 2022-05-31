@@ -29,7 +29,7 @@ const (
 	ServiceActionRestart = "RESTART"
 
 	InventoryTickerSchedule = 30 * time.Second
-	InventoryTickerTimeout  = 1 * time.Minute
+	InventoryTickerTimeout  = 5 * time.Minute
 )
 
 type Log struct {

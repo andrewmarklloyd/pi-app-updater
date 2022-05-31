@@ -88,7 +88,7 @@ func main() {
 			logger.Println("unmarshalling agent inventory payload:", unmarshErr)
 			return
 		}
-		logger.Println("got agent inventory ping:", p)
+
 		err = redisClient.WriteAgentInventory(context.Background(), p)
 		if err != nil {
 			logger.Println(fmt.Sprintf("writing agent inventory to redis: %s", err))
@@ -102,7 +102,7 @@ func main() {
 			currentTimer.Stop()
 		}
 		timer := time.AfterFunc(config.InventoryTickerTimeout, func() {
-			logger.Println("Agent inventory timeout occurred for host: ", p.Host)
+			logger.Println("Agent inventory timeout occurred for host:", p.Host)
 		})
 		inventoryTimerMap[p.Host] = timer
 	})
