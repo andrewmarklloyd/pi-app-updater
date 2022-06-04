@@ -89,6 +89,54 @@ func (a *Agent) handleRepoUpdate(artifact config.Artifact, cfg config.Config) er
 	return nil
 }
 
+func (a *Agent) handleDeployerAgentUpdate(artifact config.Artifact) error {
+	url, err := github.GetDownloadURLWithRetries(artifact, false)
+	if err != nil {
+		return err
+	}
+	artifact.ArchiveDownloadURL = url
+
+	dlDir := "/tmp/pi-app-deployer"
+
+	err = file.DownloadExtract(artifact.ArchiveDownloadURL, dlDir, a.GHApiToken)
+	if err != nil {
+		return fmt.Errorf("downloading and extracting pi-app-deployer-agent artifact: %s", err)
+	}
+
+	deployerFile, err := file.EvalDeployerTemplate(a.HerokuApp)
+	if err != nil {
+		return fmt.Errorf("rendering deployer template: %s", err)
+	}
+
+	deployerServiceFileOutputPath := "/tmp/pi-app-deployer-agent.service"
+	err = os.WriteFile(deployerServiceFileOutputPath, []byte(deployerFile), 0644)
+	if err != nil {
+		return fmt.Errorf("writing deployer service file: %s", err)
+	}
+
+	err = file.CopyWithOwnership(map[string]string{
+		deployerServiceFileOutputPath: "/etc/systemd/system/pi-app-deployer-agent.service",
+	})
+	if err != nil {
+		return err
+	}
+
+	err = file.DaemonReload()
+	if err != nil {
+		return fmt.Errorf("running daemon-reload: %s", err)
+	}
+
+	// how to replace the binary when that is the current process that is using that binary?
+	// move /tmp/pi-app-deployer/pi-app-deployer-agent to /usr/local/src/pi-app-deployer
+
+	err = file.RestartSystemdUnit("pi-app-deployer-agent")
+	if err != nil {
+		return fmt.Errorf("restarting pi-app-deployer-agent systemd unit: %s", err)
+	}
+
+	return nil
+}
+
 func (a *Agent) handleInstall(artifact config.Artifact, cfg config.Config) (config.Config, error) {
 	err := file.WriteDeployerEnvFile(a.HerokuAPIKey)
 	if err != nil {
