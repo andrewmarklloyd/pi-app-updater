@@ -131,13 +131,14 @@ func runUpdate(cmd *cobra.Command, args []string) {
 	})
 
 	agent.MqttClient.Subscribe(config.AgentUpdateTopic, func(message string) {
-		logger.Println("New agent version published, updating now")
-		a := config.Artifact{
-			RepoName: "andrewmarklloyd/pi-app-deployer",
-			Name:     "pi-app-deployer-agent_2a8dafebb07345cb25a3b5d2bf63729db9ea3572",
-			SHA:      "2a8dafebb07345cb25a3b5d2bf63729db9ea3572",
+		var artifact config.Artifact
+		err := json.Unmarshal([]byte(message), &artifact)
+		if err != nil {
+			logger.Println(fmt.Sprintf("unmarshalling payload from topic %s: %s", config.RepoPushTopic, err))
+			return
 		}
-		err = agent.handleDeployerAgentUpdate(a)
+		logger.Println("New agent version published, updating now", artifact)
+		err = agent.handleDeployerAgentUpdate(artifact)
 		if err != nil {
 			logger.Fatalln(err)
 		}
