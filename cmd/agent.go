@@ -121,13 +121,17 @@ func (a *Agent) handleDeployerAgentUpdate(artifact config.Artifact) error {
 		return err
 	}
 
+	err = file.CopyWithOwnership(map[string]string{
+		"/tmp/pi-app-deployer/pi-app-deployer-agent": "/usr/local/src/pi-app-deployer",
+	})
+	if err != nil {
+		return fmt.Errorf("copying pi-app-deployer-agent: %s", err)
+	}
+
 	err = file.DaemonReload()
 	if err != nil {
 		return fmt.Errorf("running daemon-reload: %s", err)
 	}
-
-	// how to replace the binary when that is the current process that is using that binary?
-	// move /tmp/pi-app-deployer/pi-app-deployer-agent to /usr/local/src/pi-app-deployer
 
 	err = file.RestartSystemdUnit("pi-app-deployer-agent")
 	if err != nil {
