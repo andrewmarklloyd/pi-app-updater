@@ -402,6 +402,24 @@ func (a *Agent) publishAgentInventory(m map[string]config.Config, host string, t
 			return fmt.Errorf("publishing agent inventory message: %s", err)
 		}
 	}
+
+	p := config.AgentInventoryPayload{
+		RepoName:     "andrewmarklloyd/pi-app-deployer",
+		ManifestName: "pi-app-deployer-agent",
+		Host:         host,
+		Timestamp:    timestamp,
+	}
+
+	j, err := json.Marshal(p)
+	if err != nil {
+		return fmt.Errorf("marshalling agent inventory payload: %s", err)
+	}
+
+	err = a.MqttClient.Publish(config.AgentInventoryTopic, string(j))
+	if err != nil {
+		return fmt.Errorf("publishing agent inventory message: %s", err)
+	}
+
 	return nil
 }
 
