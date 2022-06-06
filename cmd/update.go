@@ -94,7 +94,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		if deployerConfig.FeatureAutoUpdateAgent {
+		if false {
 			if artifact.RepoName == "andrewmarklloyd/pi-app-deployer" && artifact.ManifestName == "pi-app-deployer-agent" {
 				logger.Println("New pi-app-deployer-agent version published, updating now", artifact)
 				updateCondition := status.UpdateCondition{
