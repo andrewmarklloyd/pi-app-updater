@@ -94,6 +94,15 @@ func runUpdate(cmd *cobra.Command, args []string) {
 			return
 		}
 
+		if artifact.RepoName == "andrewmarklloyd/pi-app-deployer" {
+			logger.Println("New pi-app-deployer-agent version published, updating now", artifact)
+			// err = agent.handleDeployerAgentUpdate(artifact)
+			// if err != nil {
+			// 	logger.Println("error updating agent version:", err)
+			// }
+			return
+		}
+
 		for _, cfg := range deployerConfig.AppConfigs {
 			if artifact.RepoName == cfg.RepoName && artifact.ManifestName == cfg.ManifestName {
 				logger.Println(fmt.Sprintf("updating repo %s with manifest name %s", cfg.RepoName, cfg.ManifestName))
@@ -127,20 +136,6 @@ func runUpdate(cmd *cobra.Command, args []string) {
 					logger.Println(err)
 				}
 			}
-		}
-	})
-
-	agent.MqttClient.Subscribe(config.AgentUpdateTopic, func(message string) {
-		var artifact config.Artifact
-		err := json.Unmarshal([]byte(message), &artifact)
-		if err != nil {
-			logger.Println(fmt.Sprintf("unmarshalling payload from topic %s: %s", config.RepoPushTopic, err))
-			return
-		}
-		logger.Println("New agent version published, updating now", artifact)
-		err = agent.handleDeployerAgentUpdate(artifact)
-		if err != nil {
-			logger.Println("error updating agent version:", err)
 		}
 	})
 
