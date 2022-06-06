@@ -140,7 +140,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 		logger.Println("New agent version published, updating now", artifact)
 		err = agent.handleDeployerAgentUpdate(artifact)
 		if err != nil {
-			logger.Fatalln(err)
+			logger.Println("error updating agent version:", err)
 		}
 	})
 

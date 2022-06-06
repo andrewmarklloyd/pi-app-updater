@@ -92,7 +92,7 @@ func (a *Agent) handleRepoUpdate(artifact config.Artifact, cfg config.Config) er
 func (a *Agent) handleDeployerAgentUpdate(artifact config.Artifact) error {
 	url, err := github.GetDownloadURLWithRetries(artifact, false)
 	if err != nil {
-		return err
+		return fmt.Errorf("getting download url: %s", err)
 	}
 	artifact.ArchiveDownloadURL = url
 
@@ -118,11 +118,11 @@ func (a *Agent) handleDeployerAgentUpdate(artifact config.Artifact) error {
 		deployerServiceFileOutputPath: "/etc/systemd/system/pi-app-deployer-agent.service",
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("copying deployer systemd unit file: %s", err)
 	}
 
 	err = file.CopyWithOwnership(map[string]string{
-		"/tmp/pi-app-deployer/pi-app-deployer-agent": "/usr/local/src/pi-app-deployer",
+		fmt.Sprintf("%s/pi-app-deployer-agent", dlDir): fmt.Sprintf("%s/pi-app-deployer-agent", config.PiAppDeployerDir),
 	})
 	if err != nil {
 		return fmt.Errorf("copying pi-app-deployer-agent: %s", err)
