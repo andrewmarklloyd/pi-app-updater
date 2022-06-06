@@ -138,6 +138,11 @@ func (a *Agent) handleDeployerAgentUpdate(artifact config.Artifact) error {
 		return fmt.Errorf("restarting pi-app-deployer-agent systemd unit: %s", err)
 	}
 
+	err = os.RemoveAll(dlDir)
+	if err != nil {
+		return fmt.Errorf("removing tmp download directory: %s", err)
+	}
+
 	return nil
 }
 
