@@ -94,38 +94,40 @@ func runUpdate(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		if artifact.RepoName == "andrewmarklloyd/pi-app-deployer" && artifact.ManifestName == "pi-app-deployer-agent" {
-			logger.Println("New pi-app-deployer-agent version published, updating now", artifact)
-			updateCondition := status.UpdateCondition{
-				RepoName:     artifact.RepoName,
-				ManifestName: artifact.ManifestName,
-				Status:       config.StatusInProgress,
-				Host:         host,
+		if deployerConfig.FeatureAutoUpdateAgent {
+			if artifact.RepoName == "andrewmarklloyd/pi-app-deployer" && artifact.ManifestName == "pi-app-deployer-agent" {
+				logger.Println("New pi-app-deployer-agent version published, updating now", artifact)
+				updateCondition := status.UpdateCondition{
+					RepoName:     artifact.RepoName,
+					ManifestName: artifact.ManifestName,
+					Status:       config.StatusInProgress,
+					Host:         host,
+				}
+
+				err = agent.publishUpdateCondition(updateCondition)
+				if err != nil {
+					// log but don't block update from proceeding
+					logger.Println(err)
+				}
+
+				err = agent.handleDeployerAgentUpdate(artifact)
+				if err != nil {
+					logger.Println("error updating agent version:", err)
+					updateCondition.Error = err.Error()
+					updateCondition.Status = config.StatusErr
+					err = agent.publishUpdateCondition(updateCondition)
+					if err != nil {
+						logger.Println(err)
+					}
+					return
+				}
+
+				updateCondition.Status = config.StatusSuccess
+				err = agent.publishUpdateCondition(updateCondition)
+				if err != nil {
+					logger.Println(err)
+				}
 			}
-
-			err = agent.publishUpdateCondition(updateCondition)
-			if err != nil {
-				// log but don't block update from proceeding
-				logger.Println(err)
-			}
-
-			// err = agent.handleDeployerAgentUpdate(artifact)
-			// if err != nil {
-			// 	logger.Println("error updating agent version:", err)
-			// 	updateCondition.Error = err.Error()
-			// 	updateCondition.Status = config.StatusErr
-			// 	err = agent.publishUpdateCondition(updateCondition)
-			// 	if err != nil {
-			// 		logger.Println(err)
-			// 	}
-			// 	return
-			// }
-
-			// updateCondition.Status = config.StatusSuccess
-			// err = agent.publishUpdateCondition(updateCondition)
-			// if err != nil {
-			// 	logger.Println(err)
-			// }
 		}
 
 		for _, cfg := range deployerConfig.AppConfigs {
