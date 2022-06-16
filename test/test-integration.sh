@@ -33,6 +33,7 @@ if ! command -v redis-cli &> /dev/null; then
   apt-get install redis -y >/dev/null
 fi
 
+export GH_API_TOKEN=$(heroku config:get GH_API_TOKEN -a ${DEPLOYER_APP})
 export REDIS_URL=$(heroku config:get REDIS_URL -a ${DEPLOYER_APP})
 redis-cli -u ${REDIS_URL} --scan --pattern "*andrewmarklloyd/pi-test*" | xargs --no-run-if-empty redis-cli -u ${REDIS_URL} del
 
