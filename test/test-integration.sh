@@ -61,7 +61,7 @@ git config --global user.name "GitHub Actions Bot"
 git config --global user.email "<>"
 git clone https://github.com/andrewmarklloyd/pi-test.git
 cd pi-test
-git remote set-url origin https://andrewmarklloyd:${GH_COMMIT_TOKEN}@github.com/andrewmarklloyd/pi-test.git
+git remote set-url origin https://andrewmarklloyd:${GH_API_TOKEN}@github.com/andrewmarklloyd/pi-test.git
 deployerSHA=$(git rev-parse HEAD)
 echo "Test run: ${deployerSHA};${DEPLOYER_APP}"
 echo "${deployerSHA};${DEPLOYER_APP}" >> test/integration-trigger.txt
