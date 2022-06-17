@@ -84,6 +84,12 @@ func main() {
 		var zLog zapLog
 		if err := json.Unmarshal([]byte(log.Message), &zLog); err != nil {
 			logger.Errorf("unmarshalling log forwarded message into zap log message: %s, raw message json: %s", err, log.Message)
+			forwarderLogger.Infof(log.Message,
+				"agentLogger", "pi-app-deployer-agent",
+				"repoName", log.Config.RepoName,
+				"host", log.Host,
+				"manifestName", log.Config.ManifestName,
+			)
 			return
 		}
 
