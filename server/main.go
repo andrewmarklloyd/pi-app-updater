@@ -83,7 +83,7 @@ func main() {
 
 		var zLog zapLog
 		if err := json.Unmarshal([]byte(log.Message), &zLog); err != nil {
-			logger.Errorf("unmarshalling log forwarded message into zap log message: %s", err)
+			logger.Errorf("unmarshalling log forwarded message into zap log message: %s, raw message json: %s", err, log.Message)
 			return
 		}
 
