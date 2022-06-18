@@ -4,7 +4,6 @@ appConfigs:
     repoName: andrewmarklloyd/pi-test
     manifestName: pi-test-amd64
     appUser: runneradmin
-    logForwarding: true
     envVars:
       MY_CONFIG: testing
     executable: pi-test-agent-amd64
