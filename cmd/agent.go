@@ -360,7 +360,6 @@ func unInstallAll(c map[string]config.Config) error {
 	return nil
 }
 
-// TODO: is there a better way to capture closures without so much nesting?
 func (a *Agent) startLogForwarder(deplerConfig config.DeployerConfig, host string, f func(config.Log)) {
 	for _, cfg := range deplerConfig.AppConfigs {
 		if cfg.LogForwarding {
@@ -368,6 +367,11 @@ func (a *Agent) startLogForwarder(deplerConfig config.DeployerConfig, host strin
 				logChannel := make(chan file.Syslog)
 				go file.TailSystemdLogs(n.ManifestName, logChannel)
 				for log := range logChannel {
+					if log.Error != nil {
+						logger.Errorw(fmt.Sprintf("error receiving logs from journalctl channel: %s", log.Error))
+						break
+					}
+
 					f(config.Log{
 						Message: log.Message,
 						Config:  n,
