@@ -11,9 +11,9 @@ const (
 	systemDPath = "/etc/systemd/system"
 )
 
-type Syslog struct {
-	SYSLOG_IDENTIFIER string `json:"SYSLOG_IDENTIFIER"`
-	MESSAGE           string `json:"MESSAGE"`
+type syslog struct {
+	Identifier string `json:"SYSLOG_IDENTIFIER"`
+	Message    string `json:"MESSAGE"`
 }
 
 func SetupSystemdUnits(unitName string) error {
@@ -125,14 +125,14 @@ func TailSystemdLogs(systemdUnit string, ch chan string) error {
 			break
 		}
 
-		var s Syslog
+		var s syslog
 		err = json.Unmarshal(buf[0:n], &s)
 		if err != nil {
 			break
 		}
 
-		if s.MESSAGE != "" && s.SYSLOG_IDENTIFIER != "systemd" && !strings.Contains(s.MESSAGE, "Logs begin at") {
-			ch <- string(s.MESSAGE)
+		if s.Message != "" && s.Identifier != "systemd" && !strings.Contains(s.Message, "Logs begin at") {
+			ch <- string(s.Message)
 		}
 	}
 	close(ch)
