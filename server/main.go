@@ -29,6 +29,8 @@ var forwarderLogger *zap.SugaredLogger
 var messageClient mqtt.MqttClient
 var redisClient redis.Redis
 
+var allowedAPIKeys []string
+
 var version string
 
 func main() {
@@ -67,6 +69,11 @@ func main() {
 	redisClient, err = redis.NewRedisClient(os.Getenv("REDIS_TLS_URL"))
 	if err != nil {
 		logger.Fatalf("creating redis client: %s", err)
+	}
+
+	allowedAPIKeys = strings.Split(os.Getenv("ALLOWED_API_KEYS"), ",")
+	for i := range allowedAPIKeys {
+		allowedAPIKeys[i] = strings.TrimSpace(allowedAPIKeys[i])
 	}
 
 	fConfig := os.Getenv("FORWARDER_CONFIG")
@@ -185,13 +192,15 @@ func requireLogin(next http.Handler) http.Handler {
 }
 
 func isAuthenticated(req *http.Request) bool {
-	allowedApiKey := os.Getenv("PI_APP_DEPLOYER_API_KEY")
 	apiKey := req.Header.Get("api-key")
 	if apiKey == "" {
 		return false
 	}
-	if apiKey != allowedApiKey {
-		return false
+	allowed := false
+	for _, key := range allowedAPIKeys {
+		if key == apiKey {
+			allowed = true
+		}
 	}
-	return true
+	return allowed
 }
