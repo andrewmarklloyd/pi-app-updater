@@ -22,7 +22,7 @@ deploy() {
 
 get_version() {
   curl -s -X GET \
-    -H "api-key: ${SERVER_API_KEY}" \
+    -H "api-key: ${PI_APP_DEPLOYER_API_KEY}" \
     https://${app}.herokuapp.com/health | jq -r '.version'
 }
 

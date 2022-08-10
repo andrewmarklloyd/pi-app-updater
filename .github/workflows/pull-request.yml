@@ -20,7 +20,7 @@ jobs:
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         GITHUB_SHA:  ${{ github.sha }}
-        SERVER_API_KEY: ${{ secrets.SERVER_API_KEY_STAGING }}
+        PI_APP_DEPLOYER_API_KEY: ${{ secrets.PI_APP_DEPLOYER_API_KEY_STAGING }}
       run: ./.github/scripts/deploy-heroku.sh pi-app-deployer-staging
     - name: Integration
       env:
